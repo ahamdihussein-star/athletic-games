@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>🏃 Athletic Games Pro 🏆</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Press Start 2P', monospace; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%); min-height: 100vh; color: white; touch-action: manipulation; overflow-x: hidden; }
+        .screen { display: none; min-height: 100vh; padding: 15px; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        .title { font-size: 1rem; color: #f1c40f; text-shadow: 3px 3px 0 #e74c3c; text-align: center; margin: 15px 0; }
+        .box { background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%); border: 4px solid #f1c40f; padding: 20px; max-width: 420px; width: 100%; border-radius: 8px; }
+        button, .opt, .color-opt, .outfit-opt { -webkit-appearance: none; cursor: pointer; transition: all 0.1s; user-select: none; -webkit-user-select: none; }
+        .btn { font-family: inherit; font-size: 0.5rem; padding: 12px; background: linear-gradient(180deg, #3498db 0%, #2980b9 100%); color: white; border: 3px solid #5dade2; width: 100%; margin: 5px 0; border-radius: 5px; text-align: center; display: block; }
+        .btn:active { transform: scale(0.98); }
+        .btn.red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-color: #ec7063; }
+        .btn.green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-color: #58d68d; }
+        .btn.gold { background: linear-gradient(180deg, #f1c40f 0%, #d4ac0d 100%); border-color: #f4d03f; color: black; }
+        .btn.purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-color: #bb8fce; }
+        .btn:disabled { opacity: 0.4; }
+        .input { font-family: inherit; font-size: 0.6rem; padding: 10px; background: #0a0a15; color: #f1c40f; border: 3px solid #f1c40f; width: 100%; text-align: center; border-radius: 5px; }
+        .opts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+        .opt { padding: 8px 12px; background: #1a1a2e; border: 2px solid #555; font-family: inherit; font-size: 0.4rem; color: white; border-radius: 5px; }
+        .opt.sel { border-color: #f1c40f; background: #2a2a4e; box-shadow: 0 0 8px rgba(241,196,15,0.4); }
+        .color-opt { width: 32px; height: 32px; border: 3px solid #555; border-radius: 50%; }
+        .color-opt.sel { border-color: #f1c40f; transform: scale(1.1); box-shadow: 0 0 8px rgba(241,196,15,0.5); }
+        .outfit-opt { width: 65px; height: 75px; background: #0a0a15; border: 3px solid #555; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.35rem; border-radius: 8px; }
+        .outfit-opt .icon { font-size: 1.6rem; margin-bottom: 4px; }
+        .outfit-opt.sel { border-color: #f1c40f; background: #1a1a3e; }
+        .games { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 320px; margin-top: 15px; }
+        .game-card { background: #1a1a2e; border: 3px solid #555; padding: 15px; text-align: center; border-radius: 8px; cursor: pointer; }
+        .game-card:active { border-color: #f1c40f; }
+        .game-card .icon { font-size: 1.8rem; }
+        .game-card .name { font-size: 0.4rem; color: #f1c40f; margin-top: 8px; }
+        #gameArea { width: 100%; max-width: 550px; }
+        .hud { display: flex; justify-content: space-between; background: #1a1a2e; border: 3px solid #f1c40f; padding: 8px 12px; font-size: 0.4rem; margin-bottom: 5px; border-radius: 5px; }
+        .hud .time { color: #2ecc71; font-size: 0.75rem; }
+        #canvas { width: 100%; height: 280px; border: 4px solid #f1c40f; background: #1a1a2e; display: block; border-radius: 8px; }
+        .ctrls { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
+        .ctrl { font-family: inherit; font-size: 1.3rem; width: 72px; height: 72px; background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); color: white; border: 4px solid #ec7063; border-radius: 10px; box-shadow: 0 4px 0 #922b21; }
+        .ctrl:active { transform: translateY(4px); box-shadow: none; }
+        .ctrl.blue { background: linear-gradient(180deg, #3498db 0%, #2980b9 100%); border-color: #5dade2; box-shadow: 0 4px 0 #1a5276; }
+        .ctrl.green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-color: #58d68d; box-shadow: 0 4px 0 #1e8449; }
+        .info { font-size: 0.4rem; color: #888; text-align: center; margin: 8px 0; }
+        .result { text-align: center; padding: 20px; }
+        .result .icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .result .ttl { font-size: 0.75rem; color: #f1c40f; margin-bottom: 8px; }
+        .result .score { font-size: 1.1rem; color: #2ecc71; margin-bottom: 15px; }
+        .rank { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; margin: 4px 0; background: #0a0a15; border: 2px solid #555; font-size: 0.4rem; border-radius: 5px; }
+        .rank.gold { border-color: #f1c40f; background: linear-gradient(90deg, rgba(241,196,15,0.15), transparent); }
+        .rank.you { border-color: #3498db; background: linear-gradient(90deg, rgba(52,152,219,0.15), transparent); }
+        .back { position: absolute; top: 10px; left: 10px; font-family: inherit; font-size: 0.4rem; padding: 6px 10px; background: #333; color: white; border: 2px solid #555; border-radius: 5px; cursor: pointer; }
+        .cd { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 100; flex-direction: column; }
+        .cd.on { display: flex; }
+        .cd .num { font-size: 5rem; color: #f1c40f; text-shadow: 0 0 30px rgba(241,196,15,0.5); }
+        .cd .txt { font-size: 0.6rem; color: #fff; margin-top: 15px; }
+        .room-code { font-size: 1.2rem; color: #f1c40f; background: #0a0a15; padding: 12px 25px; border: 3px solid #f1c40f; border-radius: 8px; letter-spacing: 6px; margin: 15px 0; }
+        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #1a1a2e; border: 2px solid #555; margin: 5px 0; border-radius: 5px; font-size: 0.45rem; }
+        .player-item.host { border-color: #f1c40f; }
+        .player-item .badge { background: #f1c40f; color: black; padding: 2px 6px; border-radius: 3px; font-size: 0.35rem; }
+        .stitle { font-size: 0.45rem; color: #f1c40f; margin: 12px 0 8px; text-align: center; }
+        .live { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.85); padding: 8px; border-radius: 5px; font-size: 0.32rem; border: 1px solid #333; }
+        .live div { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+        .live .you { color: #3498db; font-weight: bold; }
+        .live .p1 { color: #f1c40f; }
+        .preview-box { width: 100px; height: 100px; background: #0a0a15; border: 3px solid #f1c40f; border-radius: 8px; margin: 10px auto; }
+        .slot { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin: 5px 0; background: #1a1a2e; border: 2px solid #555; font-size: 0.45rem; border-radius: 5px; }
+        .slot.empty { border-style: dashed; opacity: 0.5; }
+        .slot .xbtn { background: #e74c3c; border: none; color: white; padding: 4px 8px; font-family: inherit; font-size: 0.4rem; border-radius: 3px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="cd" id="cdBox"><div class="num" id="cdNum">3</div><div class="txt" id="cdTxt">GET READY!</div></div>
+
+<!-- REGISTER -->
+<div class="screen active" id="s1">
+    <h1 class="title">🏃 ATHLETIC<br>GAMES PRO 🏆</h1>
+    <div class="box">
+        <p class="stitle">PLAYER NAME</p>
+        <input class="input" id="inpName" placeholder="YOUR NAME" maxlength="10">
+        <p class="stitle">GENDER</p>
+        <div class="opts" id="genderOpts"></div>
+        <p class="stitle">SKIN COLOR</p>
+        <div class="opts" id="skinColors"></div>
+        <button class="btn gold" id="btnReg" style="margin-top:15px;">▶ START GAME</button>
+    </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="s2">
+    <h1 class="title">🏃 ATHLETIC<br>GAMES PRO 🏆</h1>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <canvas id="menuAv" width="55" height="55" style="border:3px solid #f1c40f;border-radius:8px;"></canvas>
+        <div><div id="mName" style="color:#f1c40f;font-size:0.6rem;">PLAYER</div><div style="color:#666;font-size:0.32rem;margin-top:4px;">READY TO RACE</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:260px;">
+        <button class="btn red" id="btnQuick">🎮 QUICK RACE</button>
+        <button class="btn gold" id="btnLocal">👥 LOCAL MULTIPLAYER</button>
+        <button class="btn purple" id="btnOnline">🌐 ONLINE PLAY</button>
+        <button class="btn green" id="btnTourn">🏆 TOURNAMENT</button>
+        <button class="btn" id="btnLB">📊 RECORDS</button>
+    </div>
+</div>
+
+<!-- SELECT GAME -->
+<div class="screen" id="s3">
+    <button class="back" id="backS3">← BACK</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;">SELECT EVENT</p>
+    <div class="games" id="gamesList"></div>
+</div>
+
+<!-- LOCAL MULTIPLAYER SETUP -->
+<div class="screen" id="sLocal">
+    <button class="back" id="backLocal">← BACK</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;">LOCAL MULTIPLAYER</p>
+    <div class="box" style="margin-top:15px;">
+        <p class="stitle">PLAYERS (2-4)</p>
+        <div id="localSlots"></div>
+        <div id="addLocalDiv" style="display:flex;gap:8px;margin-top:10px;">
+            <input class="input" id="inpLocalName" placeholder="PLAYER NAME" maxlength="10" style="flex:1;">
+            <button class="btn green" id="btnAddLocal" style="width:50px;margin:0;">+</button>
+        </div>
+        <button class="btn gold" id="btnStartLocal" disabled style="margin-top:15px;">▶ SELECT GAME</button>
+    </div>
+</div>
+
+<!-- OUTFIT SELECTION -->
+<div class="screen" id="sOutfit">
+    <button class="back" id="backOutfit">← BACK</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;" id="outfitTitle">CUSTOMIZE</p>
+    <div class="box" style="margin-top:15px;text-align:center;">
+        <canvas class="preview-box" id="outfitPreview" width="100" height="100"></canvas>
+        
+        <p class="stitle">DISTANCE</p>
+        <div class="opts" id="distOpts"></div>
+        
+        <p class="stitle">DIFFICULTY</p>
+        <div class="opts" id="diffOpts"></div>
+        
+        <div id="outfitStyleSection">
+            <p class="stitle">OUTFIT STYLE</p>
+            <div class="opts" id="styleOpts"></div>
+        </div>
+        
+        <div id="accessorySection" style="display:none;">
+            <p class="stitle">ACCESSORIES</p>
+            <div class="opts" id="accOpts"></div>
+        </div>
+        
+        <p class="stitle">OUTFIT COLOR</p>
+        <div class="opts" id="outfitColors"></div>
+        
+        <button class="btn gold" id="btnStartRace" style="margin-top:15px;">▶ START RACE</button>
+    </div>
+</div>
+
+<!-- ONLINE LOBBY -->
+<div class="screen" id="sOnline">
+    <button class="back" id="backOnline">← BACK</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;">🌐 ONLINE PLAY</p>
+    <div class="box" style="margin-top:15px;text-align:center;">
+        <button class="btn green" id="btnHost">🏠 CREATE ROOM</button>
+        <p style="color:#666;font-size:0.35rem;margin:15px 0;">- OR -</p>
+        <input class="input" id="inpRoom" placeholder="ENTER ROOM CODE" maxlength="6" style="text-transform:uppercase;">
+        <button class="btn purple" id="btnJoin" style="margin-top:8px;">🚪 JOIN ROOM</button>
+    </div>
+    <p id="onlineStatus" style="color:#888;font-size:0.38rem;margin-top:12px;"></p>
+</div>
+
+<!-- ONLINE ROOM -->
+<div class="screen" id="sRoom">
+    <button class="back" id="backRoom">← LEAVE</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;">GAME ROOM</p>
+    <div class="room-code" id="roomCode">XXXX</div>
+    <p style="font-size:0.32rem;color:#888;margin-bottom:12px;">Share this code with friends!</p>
+    <div id="roomPlayers" style="width:100%;max-width:300px;"></div>
+    <div id="hostCtrl" style="display:none;width:100%;max-width:300px;margin-top:15px;">
+        <p class="stitle">SELECT GAME</p>
+        <div class="opts" id="roomGameOpts"></div>
+        <p class="stitle">DISTANCE</p>
+        <div class="opts" id="roomDistOpts"></div>
+        <button class="btn gold" id="btnStartOnline" disabled style="margin-top:10px;">▶ START GAME</button>
+    </div>
+    <p id="guestWait" style="display:none;color:#888;font-size:0.4rem;margin-top:20px;">⏳ Waiting for host to start...</p>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="s6">
+    <div id="gameArea">
+        <div class="hud">
+            <span id="hEvent">100M SPRINT</span>
+            <span id="hDist" style="color:#f1c40f;">0/100m</span>
+            <span class="time" id="hTime">00:00.00</span>
+        </div>
+        <div style="position:relative;">
+            <canvas id="canvas" width="550" height="280"></canvas>
+            <div class="live" id="livePos"></div>
+        </div>
+        <p class="info" id="hInfo">TAP ◀ ▶ ALTERNATELY!</p>
+        <div class="ctrls" id="ctrls"></div>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s7">
+    <div class="box result">
+        <div class="icon" id="rIcon">🏆</div>
+        <div class="ttl" id="rTtl">FINISH!</div>
+        <div class="score" id="rScore">9.85s</div>
+        <div id="rRanks"></div>
+        <div style="display:flex;gap:8px;margin-top:15px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn red" id="btnRetry">🔄 RETRY</button>
+            <button class="btn" id="btnCont">MENU</button>
+        </div>
+    </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="s8">
+    <button class="back" id="backS8">← BACK</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;">📊 RECORDS</p>
+    <div class="opts" id="lbGame" style="margin:10px 0;"></div>
+    <div class="opts" id="lbDist" style="margin:10px 0;"></div>
+    <div id="lbList" style="width:100%;max-width:350px;"></div>
+</div>
+
+<!-- TOURNAMENT -->
+<div class="screen" id="s5">
+    <button class="back" id="backS5">← EXIT</button>
+    <p style="font-size:0.7rem;color:#f1c40f;margin-top:40px;">🏆 TOURNAMENT</p>
+    <div class="box" style="margin-top:15px;text-align:center;">
+        <p style="font-size:0.32rem;color:#666;margin-bottom:10px;">Complete all events!</p>
+        <div id="tList"></div>
+        <div id="tTotal" style="margin-top:10px;padding-top:10px;border-top:2px solid #f1c40f;font-size:0.5rem;"></div>
+    </div>
+    <button class="btn gold" id="btnNextE" style="margin-top:12px;max-width:260px;">▶ NEXT EVENT</button>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const DISTS = [
+    { m: 50, name: '50M' },
+    { m: 100, name: '100M' },
+    { m: 200, name: '200M' },
+    { m: 400, name: '400M' },
+    { m: 800, name: '800M' },
+    { m: 1500, name: '1500M' }
+];
+
+const DIFFS = [
+    { id: 'easy', name: 'EASY', mult: 0.75, color: '#2ecc71' },
+    { id: 'medium', name: 'MEDIUM', mult: 0.88, color: '#f1c40f' },
+    { id: 'hard', name: 'HARD', mult: 0.96, color: '#e74c3c' },
+    { id: 'extreme', name: 'EXTREME', mult: 1.02, color: '#9b59b6' }
+];
+
+const GAMES = {
+    sprint: { name: 'SPRINT', icon: '🏃', type: 'run' },
+    swim: { name: 'SWIMMING', icon: '🏊', type: 'swim' },
+    hurdles: { name: 'HURDLES', icon: '🚧', type: 'hurdles' }
+};
+
+const OUTFITS = {
+    sprint: {
+        styles: [
+            { id: 'tank', name: 'TANK', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' },
+            { id: 'jersey', name: 'JERSEY', icon: '🦺' }
+        ]
+    },
+    swim: {
+        styles: [
+            { id: 'speedo', name: 'SPEEDO', icon: '🩲' },
+            { id: 'swimsuit', name: 'SWIMSUIT', icon: '👙' },
+            { id: 'fullsuit', name: 'FULL', icon: '🏊' }
+        ],
+        accessories: [
+            { id: 'goggles', name: 'GOGGLES', icon: '🥽', default: true },
+            { id: 'cap', name: 'CAP', icon: '🎓', default: true }
+        ]
+    },
+    hurdles: {
+        styles: [
+            { id: 'tank', name: 'TANK', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' }
+        ]
+    }
+};
+
+const SKINS = ['#FFDFC4', '#F0C08A', '#D99B6C', '#BB7744', '#8B5A2B', '#5C3317'];
+const OUTFIT_COLORS = ['#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c', '#e91e63', '#34495e', '#ffffff'];
+
+const TOURNAMENT = [
+    { game: 'sprint', dist: 100 },
+    { game: 'swim', dist: 100 },
+    { game: 'hurdles', dist: 100 },
+    { game: 'sprint', dist: 200 },
+    { game: 'swim', dist: 200 },
+    { game: 'sprint', dist: 400 }
+];
+
+// World record speeds (m/s) for realistic CPU
+const WORLD_RECORDS = {
+    sprint: { 50: 10.4, 100: 10.4, 200: 10.2, 400: 9.3, 800: 7.9, 1500: 7.0 },
+    swim: { 50: 2.4, 100: 2.1, 200: 1.9, 400: 1.8, 800: 1.7, 1500: 1.65 },
+    hurdles: { 50: 8.5, 100: 8.9, 200: 8.5, 400: 8.0, 800: 7.5, 1500: 6.5 }
+};
+
+// ==================== STATE ====================
+let player = { name: 'PLAYER', gender: 'male', skin: '#FFDFC4', outfit: '#3498db', style: 'tank', goggles: true, cap: true };
+let localPlayers = [];
+let curGame = 'sprint';
+let curDist = 100;
+let curDiff = 'medium';
+let isTourn = false, tIdx = 0, tScores = {};
+let isLocal = false, localIdx = 0, localScores = [];
+let isOnline = false, isHost = false, peer = null, conns = [], roomCode = '';
+let onlinePlayers = [];
+
+let canvas, ctx, W = 550, H = 280;
+let running = false, startT = 0;
+let playerPos = 0, playerSpeed = 0, lastK = 'R', jumpY = 0;
+let cpus = [], hurdleList = [], anim;
+
+// ==================== STORAGE ====================
+const save = (k, v) => localStorage.setItem('agp_' + k, JSON.stringify(v));
+const load = k => { try { return JSON.parse(localStorage.getItem('agp_' + k)); } catch { return null; } };
+
+function saveScore(game, dist, name, time) {
+    const key = `sc_${game}_${dist}`;
+    let arr = load(key) || [];
+    arr.push({ n: name, t: time, d: Date.now() });
+    arr.sort((a, b) => a.t - b.t);
+    save(key, arr.slice(0, 30));
+}
+
+// ==================== HELPERS ====================
+function tap(el, fn) {
+    if (!el) return;
+    let moved = false;
+    el.addEventListener('touchstart', () => moved = false, { passive: true });
+    el.addEventListener('touchmove', () => moved = true, { passive: true });
+    el.addEventListener('touchend', e => { if (!moved) { e.preventDefault(); fn(e); } }, { passive: false });
+    el.addEventListener('click', e => { e.preventDefault(); fn(e); });
+}
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+    // Gender options
+    const gDiv = document.getElementById('genderOpts');
+    [['male', '👨 MALE'], ['female', '👩 FEMALE']].forEach(([g, txt], i) => {
+        const d = document.createElement('div');
+        d.className = 'opt' + (i === 0 ? ' sel' : '');
+        d.textContent = txt;
+        tap(d, () => {
+            document.querySelectorAll('#genderOpts .opt').forEach(x => x.classList.remove('sel'));
+            d.classList.add('sel');
+            player.gender = g;
+        });
+        gDiv.appendChild(d);
+    });
+    
+    // Skin colors
+    const sDiv = document.getElementById('skinColors');
+    SKINS.forEach((c, i) => {
+        const d = document.createElement('div');
+        d.className = 'color-opt' + (i === 0 ? ' sel' : '');
+        d.style.background = c;
+        tap(d, () => {
+            document.querySelectorAll('#skinColors .color-opt').forEach(x => x.classList.remove('sel'));
+            d.classList.add('sel');
+            player.skin = c;
+        });
+        sDiv.appendChild(d);
+    });
+    
+    // Game cards
+    const gameDiv = document.getElementById('gamesList');
+    Object.entries(GAMES).forEach(([k, v]) => {
+        const d = document.createElement('div');
+        d.className = 'game-card';
+        d.innerHTML = `<div class="icon">${v.icon}</div><div class="name">${v.name}</div>`;
+        tap(d, () => showOutfitScreen(k));
+        gameDiv.appendChild(d);
+    });
+    
+    // All button handlers
+    tap(document.getElementById('btnReg'), register);
+    tap(document.getElementById('btnQuick'), () => { isLocal = false; show('s3'); });
+    tap(document.getElementById('btnLocal'), () => { initLocalMulti(); show('sLocal'); });
+    tap(document.getElementById('btnOnline'), () => show('sOnline'));
+    tap(document.getElementById('btnTourn'), startTournament);
+    tap(document.getElementById('btnLB'), () => { showLeaderboard('sprint', 100); show('s8'); });
+    
+    tap(document.getElementById('backS3'), () => show('s2'));
+    tap(document.getElementById('backLocal'), () => show('s2'));
+    tap(document.getElementById('backOutfit'), () => show(isLocal ? 'sLocal' : 's3'));
+    tap(document.getElementById('backOnline'), () => show('s2'));
+    tap(document.getElementById('backRoom'), leaveRoom);
+    tap(document.getElementById('backS5'), () => { isTourn = false; show('s2'); });
+    tap(document.getElementById('backS8'), () => show('s2'));
+    
+    tap(document.getElementById('btnAddLocal'), addLocalPlayer);
+    tap(document.getElementById('btnStartLocal'), () => show('s3'));
+    tap(document.getElementById('btnStartRace'), startRace);
+    tap(document.getElementById('btnRetry'), retry);
+    tap(document.getElementById('btnCont'), () => show('s2'));
+    tap(document.getElementById('btnNextE'), nextTournEvent);
+    
+    tap(document.getElementById('btnHost'), createRoom);
+    tap(document.getElementById('btnJoin'), joinRoom);
+    tap(document.getElementById('btnStartOnline'), startOnlineGame);
+});
+
+function register() {
+    player.name = document.getElementById('inpName').value.trim().toUpperCase() || 'PLAYER';
+    localPlayers = [{ ...player }];
+    document.getElementById('mName').textContent = player.name;
+    drawMenuAvatar();
+    show('s2');
+}
+
+function drawMenuAvatar() {
+    const c = document.getElementById('menuAv');
+    const x = c.getContext('2d');
+    x.fillStyle = '#0a0a15';
+    x.fillRect(0, 0, 55, 55);
+    drawRunner(x, 27, 38, player.skin, player.outfit, player.gender === 'female', 1.1, 0);
+}
+
+// ==================== LOCAL MULTIPLAYER ====================
+function initLocalMulti() {
+    localPlayers = [{ ...player }];
+    updateLocalSlots();
+}
+
+function updateLocalSlots() {
+    const div = document.getElementById('localSlots');
+    div.innerHTML = '';
+    
+    localPlayers.forEach((p, i) => {
+        const s = document.createElement('div');
+        s.className = 'slot';
+        s.innerHTML = `<span style="color:${p.outfit}">●</span> <span>${p.name}</span>` + 
+            (i === 0 ? '<span style="color:#f1c40f;font-size:0.35rem;">HOST</span>' : 
+            `<button class="xbtn" data-idx="${i}">✕</button>`);
+        div.appendChild(s);
+    });
+    
+    // Add click handlers for remove buttons
+    div.querySelectorAll('.xbtn').forEach(btn => {
+        tap(btn, () => {
+            const idx = parseInt(btn.dataset.idx);
+            localPlayers.splice(idx, 1);
+            updateLocalSlots();
+        });
+    });
+    
+    for (let i = localPlayers.length; i < 4; i++) {
+        const s = document.createElement('div');
+        s.className = 'slot empty';
+        s.textContent = 'EMPTY SLOT';
+        div.appendChild(s);
+    }
+    
+    document.getElementById('addLocalDiv').style.display = localPlayers.length < 4 ? 'flex' : 'none';
+    document.getElementById('btnStartLocal').disabled = localPlayers.length < 2;
+}
+
+function addLocalPlayer() {
+    if (localPlayers.length >= 4) return;
+    const name = document.getElementById('inpLocalName').value.trim().toUpperCase();
+    if (!name) return;
+    
+    const colors = OUTFIT_COLORS.filter(c => !localPlayers.some(p => p.outfit === c));
+    localPlayers.push({
+        name,
+        gender: Math.random() > 0.5 ? 'male' : 'female',
+        skin: SKINS[localPlayers.length % SKINS.length],
+        outfit: colors[0] || OUTFIT_COLORS[localPlayers.length],
+        style: 'tank',
+        goggles: true,
+        cap: true
+    });
+    
+    document.getElementById('inpLocalName').value = '';
+    updateLocalSlots();
+}
+
+// ==================== OUTFIT SCREEN ====================
+function showOutfitScreen(game) {
+    curGame = game;
+    const info = GAMES[game];
+    const outfitInfo = OUTFITS[game];
+    
+    document.getElementById('outfitTitle').textContent = info.name + ' - OPTIONS';
+    
+    // Distance options - ALL distances for ALL games
+    const distDiv = document.getElementById('distOpts');
+    distDiv.innerHTML = '';
+    DISTS.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'opt' + (d.m === 100 ? ' sel' : '');
+        el.textContent = d.name;
+        tap(el, () => {
+            document.querySelectorAll('#distOpts .opt').forEach(x => x.classList.remove('sel'));
+            el.classList.add('sel');
+            curDist = d.m;
+        });
+        distDiv.appendChild(el);
+    });
+    curDist = 100;
+    
+    // Difficulty options
+    const diffDiv = document.getElementById('diffOpts');
+    diffDiv.innerHTML = '';
+    DIFFS.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'opt' + (d.id === 'medium' ? ' sel' : '');
+        el.textContent = d.name;
+        el.style.color = d.color;
+        tap(el, () => {
+            document.querySelectorAll('#diffOpts .opt').forEach(x => x.classList.remove('sel'));
+            el.classList.add('sel');
+            curDiff = d.id;
+        });
+        diffDiv.appendChild(el);
+    });
+    curDiff = 'medium';
+    
+    // Outfit style options
+    const styleDiv = document.getElementById('styleOpts');
+    styleDiv.innerHTML = '';
+    outfitInfo.styles.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.className = 'outfit-opt' + (i === 0 ? ' sel' : '');
+        el.innerHTML = `<div class="icon">${s.icon}</div><div>${s.name}</div>`;
+        tap(el, () => {
+            document.querySelectorAll('#styleOpts .outfit-opt').forEach(x => x.classList.remove('sel'));
+            el.classList.add('sel');
+            player.style = s.id;
+            drawOutfitPreview();
+        });
+        styleDiv.appendChild(el);
+    });
+    player.style = outfitInfo.styles[0].id;
+    
+    // Accessories (for swimming)
+    const accSection = document.getElementById('accessorySection');
+    const accDiv = document.getElementById('accOpts');
+    if (outfitInfo.accessories) {
+        accSection.style.display = 'block';
+        accDiv.innerHTML = '';
+        outfitInfo.accessories.forEach(a => {
+            const el = document.createElement('div');
+            el.className = 'outfit-opt' + (a.default ? ' sel' : '');
+            el.innerHTML = `<div class="icon">${a.icon}</div><div>${a.name}</div>`;
+            tap(el, () => {
+                el.classList.toggle('sel');
+                player[a.id] = el.classList.contains('sel');
+                drawOutfitPreview();
+            });
+            accDiv.appendChild(el);
+        });
+        player.goggles = true;
+        player.cap = true;
+    } else {
+        accSection.style.display = 'none';
+    }
+    
+    // Outfit colors
+    const colorDiv = document.getElementById('outfitColors');
+    colorDiv.innerHTML = '';
+    OUTFIT_COLORS.forEach((c, i) => {
+        const el = document.createElement('div');
+        el.className = 'color-opt' + (c === player.outfit ? ' sel' : '');
+        el.style.background = c;
+        tap(el, () => {
+            document.querySelectorAll('#outfitColors .color-opt').forEach(x => x.classList.remove('sel'));
+            el.classList.add('sel');
+            player.outfit = c;
+            drawOutfitPreview();
+        });
+        colorDiv.appendChild(el);
+    });
+    
+    show('sOutfit');
+    setTimeout(drawOutfitPreview, 50);
+}
+
+function drawOutfitPreview() {
+    const c = document.getElementById('outfitPreview');
+    const x = c.getContext('2d');
+    x.fillStyle = '#0a0a15';
+    x.fillRect(0, 0, 100, 100);
+    
+    if (curGame === 'swim') {
+        drawSwimmer(x, 50, 55, player.skin, player.outfit, player.goggles, player.cap, 0, 1.3);
+    } else {
+        drawRunner(x, 50, 65, player.skin, player.outfit, player.gender === 'female', 1.5, 0);
+    }
+}
+
+// ==================== ONLINE ====================
+function generateCode() {
+    return Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+function createRoom() {
+    roomCode = generateCode();
+    document.getElementById('onlineStatus').textContent = 'Creating room...';
+    
+    peer = new Peer('athletic-' + roomCode);
+    
+    peer.on('open', () => {
+        isHost = true;
+        isOnline = true;
+        onlinePlayers = [{ id: 'host', name: player.name, skin: player.skin, outfit: player.outfit, ready: true }];
+        document.getElementById('roomCode').textContent = roomCode;
+        updateRoomUI();
+        show('sRoom');
+    });
+    
+    peer.on('connection', conn => {
+        setupConnection(conn);
+    });
+    
+    peer.on('error', err => {
+        document.getElementById('onlineStatus').textContent = 'Error: ' + err.type;
+    });
+}
+
+function joinRoom() {
+    roomCode = document.getElementById('inpRoom').value.trim().toUpperCase();
+    if (roomCode.length < 4) {
+        document.getElementById('onlineStatus').textContent = 'Please enter a valid room code';
+        return;
+    }
+    
+    document.getElementById('onlineStatus').textContent = 'Connecting...';
+    
+    peer = new Peer();
+    
+    peer.on('open', () => {
+        const conn = peer.connect('athletic-' + roomCode);
+        
+        conn.on('open', () => {
+            isHost = false;
+            isOnline = true;
+            conns = [conn];
+            conn.send({ type: 'join', name: player.name, skin: player.skin, outfit: player.outfit });
+        });
+        
+        setupConnection(conn);
+    });
+    
+    peer.on('error', err => {
+        document.getElementById('onlineStatus').textContent = 'Room not found or error: ' + err.type;
+    });
+}
+
+function setupConnection(conn) {
+    conn.on('data', data => handleOnlineData(conn, data));
+    conn.on('close', () => {
+        onlinePlayers = onlinePlayers.filter(p => p.id !== conn.peer);
+        conns = conns.filter(c => c.peer !== conn.peer);
+        updateRoomUI();
+    });
+    if (isHost) conns.push(conn);
+}
+
+function handleOnlineData(conn, data) {
+    if (data.type === 'join') {
+        onlinePlayers.push({ id: conn.peer, name: data.name, skin: data.skin, outfit: data.outfit, ready: true });
+        broadcastPlayers();
+        updateRoomUI();
+    } else if (data.type === 'players') {
+        onlinePlayers = data.players;
+        updateRoomUI();
+        show('sRoom');
+    } else if (data.type === 'start') {
+        curGame = data.game;
+        curDist = data.dist;
+        curDiff = 'hard';
+        startRace();
+    } else if (data.type === 'pos') {
+        // Handle position updates
+    } else if (data.type === 'finish') {
+        // Handle finish
+    }
+}
+
+function broadcastPlayers() {
+    conns.forEach(c => c.send({ type: 'players', players: onlinePlayers }));
+}
+
+function updateRoomUI() {
+    document.getElementById('roomCode').textContent = roomCode;
+    
+    const pList = document.getElementById('roomPlayers');
+    pList.innerHTML = '';
+    
+    onlinePlayers.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'player-item' + (i === 0 ? ' host' : '');
+        div.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="color:${p.outfit};font-size:1.2rem;">●</span>
+                <span>${p.name}</span>
+                ${i === 0 ? '<span class="badge">HOST</span>' : ''}
+            </div>
+            <span style="color:#2ecc71;">✓ READY</span>
+        `;
+        pList.appendChild(div);
+    });
+    
+    // Host controls
+    document.getElementById('hostCtrl').style.display = isHost ? 'block' : 'none';
+    document.getElementById('guestWait').style.display = isHost ? 'none' : 'block';
+    document.getElementById('btnStartOnline').disabled = onlinePlayers.length < 2;
+    
+    if (isHost) {
+        // Game options
+        const gameDiv = document.getElementById('roomGameOpts');
+        gameDiv.innerHTML = '';
+        Object.entries(GAMES).forEach(([k, v], i) => {
+            const el = document.createElement('div');
+            el.className = 'opt' + (i === 0 ? ' sel' : '');
+            el.textContent = v.icon + ' ' + v.name;
+            el.dataset.game = k;
+            tap(el, () => {
+                document.querySelectorAll('#roomGameOpts .opt').forEach(x => x.classList.remove('sel'));
+                el.classList.add('sel');
+                curGame = k;
+            });
+            gameDiv.appendChild(el);
+        });
+        
+        // Distance options
+        const distDiv = document.getElementById('roomDistOpts');
+        distDiv.innerHTML = '';
+        DISTS.slice(0, 4).forEach((d, i) => {
+            const el = document.createElement('div');
+            el.className = 'opt' + (d.m === 100 ? ' sel' : '');
+            el.textContent = d.name;
+            tap(el, () => {
+                document.querySelectorAll('#roomDistOpts .opt').forEach(x => x.classList.remove('sel'));
+                el.classList.add('sel');
+                curDist = d.m;
+            });
+            distDiv.appendChild(el);
+        });
+    }
+}
+
+function leaveRoom() {
+    if (peer) peer.destroy();
+    peer = null;
+    conns = [];
+    isOnline = false;
+    isHost = false;
+    show('s2');
+}
+
+function startOnlineGame() {
+    conns.forEach(c => c.send({ type: 'start', game: curGame, dist: curDist }));
+    startRace();
+}
+
+// ==================== TOURNAMENT ====================
+function startTournament() {
+    isTourn = true;
+    isLocal = false;
+    tIdx = 0;
+    tScores = {};
+    updateTournamentUI();
+    show('s5');
+}
+
+function updateTournamentUI() {
+    let totalTime = 0;
+    
+    document.getElementById('tList').innerHTML = TOURNAMENT.map((e, i) => {
+        const info = GAMES[e.game];
+        const sc = tScores[i];
+        const done = i < tIdx;
+        const cur = i === tIdx;
+        
+        if (sc !== undefined) totalTime += sc;
+        
+        return `<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #333;color:${done ? '#2ecc71' : cur ? '#f1c40f' : '#555'}">
+            <span>${done ? '✓ ' : cur ? '→ ' : ''}${info.icon} ${e.dist}M ${info.name}</span>
+            <span style="color:#f1c40f">${sc !== undefined ? sc.toFixed(2) + 's' : '-'}</span>
+        </div>`;
+    }).join('');
+    
+    document.getElementById('tTotal').innerHTML = tIdx > 0 ? `TOTAL: <span style="color:#2ecc71">${totalTime.toFixed(2)}s</span>` : '';
+    document.getElementById('btnNextE').textContent = tIdx >= TOURNAMENT.length ? '🏆 VIEW RESULTS' : '▶ NEXT EVENT';
+}
+
+function nextTournEvent() {
+    if (tIdx >= TOURNAMENT.length) {
+        showTournamentResults();
+        return;
+    }
+    
+    const ev = TOURNAMENT[tIdx];
+    curGame = ev.game;
+    curDist = ev.dist;
+    curDiff = 'hard';
+    showOutfitScreen(curGame);
+}
+
+function showTournamentResults() {
+    const totalTime = Object.values(tScores).reduce((a, b) => a + b, 0);
+    
+    document.getElementById('rIcon').textContent = '🏆';
+    document.getElementById('rTtl').textContent = 'TOURNAMENT COMPLETE!';
+    document.getElementById('rScore').textContent = totalTime.toFixed(2) + 's TOTAL';
+    document.getElementById('rRanks').innerHTML = TOURNAMENT.map((e, i) => {
+        const info = GAMES[e.game];
+        return `<div class="rank"><span>${info.icon} ${e.dist}M ${info.name}</span><span>${tScores[i]?.toFixed(2) || '-'}s</span></div>`;
+    }).join('');
+    
+    isTourn = false;
+    show('s7');
+}
+
+// ==================== START RACE ====================
+function startRace() {
+    const info = GAMES[curGame];
+    document.getElementById('hEvent').textContent = curDist + 'M ' + info.name;
+    
+    // Reset state
+    running = false;
+    playerPos = 0;
+    playerSpeed = 0;
+    lastK = 'R';
+    jumpY = 0;
+    
+    // Get difficulty multiplier
+    const diff = DIFFS.find(d => d.id === curDiff);
+    
+    // Calculate realistic CPU speed based on world records
+    const worldRecordSpeed = WORLD_RECORDS[curGame][curDist] || WORLD_RECORDS[curGame][100];
+    const baseSpeed = worldRecordSpeed * diff.mult;
+    
+    // Create CPU runners with realistic variation
+    cpus = [];
+    const cpuNames = ['BOLT', 'LEWIS', 'OWENS', 'PHELPS', 'FELIX', 'JOHNSON'];
+    const cpuColors = ['#e74c3c', '#9b59b6', '#1abc9c', '#e67e22', '#27ae60'];
+    const cpuSkins = ['#FFDFC4', '#D99B6C', '#8B5A2B', '#F0C08A', '#BB7744'];
+    
+    for (let i = 0; i < 5; i++) {
+        // Add realistic variation (±5%)
+        const variation = 0.95 + Math.random() * 0.10;
+        cpus.push({
+            name: cpuNames[i],
+            pos: 0,
+            speed: baseSpeed * variation,
+            color: cpuColors[i],
+            skin: cpuSkins[i],
+            female: i >= 3,
+            finished: false,
+            time: 0,
+            goggles: true,
+            cap: true
+        });
+    }
+    
+    // Sort by speed (fastest first for seeding)
+    cpus.sort((a, b) => b.speed - a.speed);
+    
+    // Create hurdles if needed
+    if (curGame === 'hurdles') {
+        hurdleList = [];
+        const hurdleCount = Math.floor(curDist / 15);
+        const spacing = curDist / (hurdleCount + 1);
+        for (let i = 0; i < hurdleCount; i++) {
+            hurdleList.push({ x: spacing * (i + 1), cleared: false });
+        }
+    }
+    
+    setupControls();
+    show('s6');
+    
+    setTimeout(() => {
+        canvas = document.getElementById('canvas');
+        canvas.width = 550;
+        canvas.height = 280;
+        W = 550;
+        H = 280;
+        ctx = canvas.getContext('2d');
+        
+        drawFrame(0);
+        
+        countdown(() => {
+            startT = Date.now();
+            running = true;
+            gameLoop();
+        });
+    }, 100);
+}
+
+function setupControls() {
+    const div = document.getElementById('ctrls');
+    div.innerHTML = '';
+    
+    const info = curGame === 'hurdles' ? 'TAP ◀ ▶ TO RUN, ⬆ TO JUMP!' : 'TAP ◀ ▶ ALTERNATELY AS FAST AS YOU CAN!';
+    document.getElementById('hInfo').textContent = info;
+    
+    const addBtn = (txt, cls, fn) => {
+        const b = document.createElement('button');
+        b.className = 'ctrl' + (cls ? ' ' + cls : '');
+        b.textContent = txt;
+        tap(b, fn);
+        div.appendChild(b);
+    };
+    
+    addBtn('◀', 'blue', () => doTap('L'));
+    addBtn('▶', 'green', () => doTap('R'));
+    if (curGame === 'hurdles') addBtn('⬆', '', doJump);
+}
+
+function doTap(side) {
+    if (!running) return;
+    
+    // Reward alternating taps more
+    if (side !== lastK) {
+        playerSpeed += 1.0;
+    } else {
+        playerSpeed += 0.4;
+    }
+    lastK = side;
+}
+
+function doJump() {
+    if (running && jumpY === 0) {
+        jumpY = 1;
+    }
+}
+
+function countdown(cb) {
+    const overlay = document.getElementById('cdBox');
+    const numEl = document.getElementById('cdNum');
+    const txtEl = document.getElementById('cdTxt');
+    
+    overlay.classList.add('on');
+    let count = 3;
+    numEl.textContent = count;
+    txtEl.textContent = 'GET READY!';
+    
+    const redrawInterval = setInterval(() => drawFrame(0), 50);
+    
+    const countInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            numEl.textContent = count;
+            txtEl.textContent = count === 1 ? 'SET...' : 'GET READY!';
+        } else if (count === 0) {
+            numEl.textContent = 'GO!';
+            txtEl.textContent = '';
+        } else {
+            clearInterval(countInterval);
+            clearInterval(redrawInterval);
+            overlay.classList.remove('on');
+            cb();
+        }
+    }, 800);
+}
+
+function gameLoop() {
+    if (!running) return;
+    
+    const elapsed = (Date.now() - startT) / 1000;
+    
+    // Update HUD
+    document.getElementById('hTime').textContent = formatTime(elapsed);
+    document.getElementById('hDist').textContent = playerPos.toFixed(1) + '/' + curDist + 'm';
+    
+    // Update player position
+    const speedFactor = curGame === 'swim' ? 0.08 : 0.14;
+    playerPos += playerSpeed * speedFactor;
+    playerSpeed *= 0.92; // Friction
+    
+    // Jump physics
+    if (jumpY > 0) {
+        jumpY += 0.9;
+        if (jumpY > 15) jumpY = -15;
+    } else if (jumpY < 0) {
+        jumpY += 0.9;
+        if (jumpY > 0) jumpY = 0;
+    }
+    
+    // Check hurdles
+    if (curGame === 'hurdles') {
+        const jumpOffset = jumpY > 0 ? -jumpY * 3 : jumpY * 3;
+        hurdleList.forEach(h => {
+            if (!h.cleared && Math.abs(playerPos - h.x) < 2.5) {
+                if (jumpOffset > -25) {
+                    // Hit hurdle - slow down
+                    playerSpeed *= 0.15;
+                }
+                h.cleared = true;
+            }
+        });
+    }
+    
+    // Update CPU runners
+    cpus.forEach(cpu => {
+        if (!cpu.finished) {
+            // Add slight random variation to make it more natural
+            const variation = 0.97 + Math.random() * 0.06;
+            cpu.pos += cpu.speed * 0.095 * variation;
+            
+            if (cpu.pos >= curDist) {
+                cpu.finished = true;
+                cpu.time = elapsed;
+            }
+        }
+    });
+    
+    // Update live positions
+    updateLivePositions(elapsed);
+    
+    // Draw frame
+    drawFrame(elapsed);
+    
+    // Check if player finished
+    if (playerPos >= curDist) {
+        endRace(elapsed);
+        return;
+    }
+    
+    anim = requestAnimationFrame(gameLoop);
+}
+
+function updateLivePositions(elapsed) {
+    const all = [
+        { name: 'YOU', pos: playerPos, you: true, isPlayer: true },
+        ...cpus.map(c => ({ name: c.name, pos: c.pos, you: false }))
+    ].sort((a, b) => b.pos - a.pos);
+    
+    document.getElementById('livePos').innerHTML = all.slice(0, 5).map((r, i) => 
+        `<div class="${r.you ? 'you' : ''} ${r.isPlayer ? 'p1' : ''}">
+            <span>${i + 1}.</span>
+            <span>${r.name}</span>
+            <span>${r.pos.toFixed(1)}m</span>
+        </div>`
+    ).join('');
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 100);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+}
+
+// ==================== DRAWING ====================
+function drawFrame(t) {
+    ctx.fillStyle = '#0a0a15';
+    ctx.fillRect(0, 0, W, H);
+    
+    if (curGame === 'swim') {
+        drawSwimScene(t);
+    } else {
+        drawTrackScene(t);
+    }
+}
+
+function drawTrackScene(t) {
+    const trackY = H * 0.32;
+    const laneH = 36;
+    const lanes = 6;
+    
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, trackY);
+    sky.addColorStop(0, '#1a3a5c');
+    sky.addColorStop(1, '#2d6a9f');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, trackY);
+    
+    // Sun
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath();
+    ctx.arc(W - 50, 35, 25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f39c12';
+    ctx.beginPath();
+    ctx.arc(W - 50, 35, 20, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    [[50, 25], [150, 40], [300, 20], [420, 35]].forEach(([cx, cy]) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+        ctx.arc(cx + 20, cy - 5, 12, 0, Math.PI * 2);
+        ctx.arc(cx + 35, cy, 14, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    
+    // Stadium
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(0, trackY - 45, W, 45);
+    
+    // Animated audience
+    const audienceColors = ['#e74c3c', '#f39c12', '#3498db', '#9b59b6', '#2ecc71', '#e91e63'];
+    for (let row = 0; row < 3; row++) {
+        for (let i = 0; i < W / 9; i++) {
+            const bounce = Math.sin(t * 5 + i * 0.4 + row * 0.5) * 2;
+            ctx.fillStyle = audienceColors[(i + row) % audienceColors.length];
+            ctx.beginPath();
+            ctx.arc(i * 9 + 4, trackY - 32 + row * 13 + bounce, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    // Track surface
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(0, trackY, W, laneH * lanes);
+    
+    // Track texture
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    for (let i = 0; i < W; i += 20) {
+        ctx.fillRect(i, trackY, 10, laneH * lanes);
+    }
+    
+    // Lane lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= lanes; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, trackY + i * laneH);
+        ctx.lineTo(W, trackY + i * laneH);
+        ctx.stroke();
+    }
+    
+    // Camera follows player
+    const visibleDist = 50;
+    const camOffset = Math.max(0, playerPos - 15);
+    
+    // Distance markers
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 9px monospace';
+    const markerStep = curDist > 200 ? 50 : 10;
+    for (let m = 0; m <= curDist; m += markerStep) {
+        const screenX = ((m - camOffset) / visibleDist) * W;
+        if (screenX >= 0 && screenX <= W) {
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillRect(screenX, trackY, 2, laneH * lanes);
+            ctx.fillStyle = 'white';
+            ctx.fillText(m + 'm', screenX + 4, trackY + 12);
+        }
+    }
+    
+    // Finish line
+    const finishX = ((curDist - camOffset) / visibleDist) * W;
+    if (finishX >= 0 && finishX <= W) {
+        for (let row = 0; row < lanes; row++) {
+            for (let col = 0; col < 3; col++) {
+                ctx.fillStyle = (row + col) % 2 === 0 ? 'white' : 'black';
+                ctx.fillRect(finishX + col * 8, trackY + row * laneH, 8, laneH);
+            }
+        }
+    }
+    
+    // Hurdles
+    if (curGame === 'hurdles') {
+        hurdleList.forEach(h => {
+            const hx = ((h.x - camOffset) / visibleDist) * W;
+            if (hx >= -20 && hx <= W + 20) {
+                // Hurdle posts
+                ctx.fillStyle = h.cleared ? '#27ae60' : '#f39c12';
+                ctx.fillRect(hx - 2, trackY + laneH - 28, 4, 28);
+                ctx.fillRect(hx + 22, trackY + laneH - 28, 4, 28);
+                // Hurdle bar
+                ctx.fillStyle = h.cleared ? '#2ecc71' : '#e74c3c';
+                ctx.fillRect(hx - 4, trackY + laneH - 32, 32, 6);
+            }
+        });
+    }
+    
+    // Draw CPU runners
+    cpus.forEach((cpu, i) => {
+        const cpuScreenX = ((cpu.pos - camOffset) / visibleDist) * W;
+        if (cpuScreenX >= -30 && cpuScreenX <= W + 30) {
+            const laneY = trackY + (i + 1) * laneH + laneH / 2;
+            drawRunner(ctx, cpuScreenX, laneY, cpu.skin, cpu.color, cpu.female, 1.3, t);
+        }
+    });
+    
+    // Draw player
+    const playerScreenX = ((playerPos - camOffset) / visibleDist) * W;
+    const jumpOffset = jumpY > 0 ? -jumpY * 3 : jumpY * 3;
+    const playerLaneY = trackY + laneH / 2 + jumpOffset;
+    
+    drawRunner(ctx, playerScreenX, playerLaneY, player.skin, player.outfit, player.gender === 'female', 1.3, t);
+    
+    // Player indicator
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath();
+    ctx.moveTo(playerScreenX, playerLaneY - 40);
+    ctx.lineTo(playerScreenX - 6, playerLaneY - 50);
+    ctx.lineTo(playerScreenX + 6, playerLaneY - 50);
+    ctx.fill();
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('YOU', playerScreenX, playerLaneY - 54);
+    ctx.textAlign = 'left';
+}
+
+function drawSwimScene(t) {
+    const laneH = H / 6;
+    
+    // Water gradient
+    const water = ctx.createLinearGradient(0, 0, 0, H);
+    water.addColorStop(0, '#1a5276');
+    water.addColorStop(0.3, '#2e86c1');
+    water.addColorStop(0.7, '#2e86c1');
+    water.addColorStop(1, '#1a5276');
+    ctx.fillStyle = water;
+    ctx.fillRect(0, 0, W, H);
+    
+    // Animated water ripples
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 12; i++) {
+        const y = (t * 20 + i * 25) % H;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x < W; x += 15) {
+            ctx.lineTo(x + 7, y + Math.sin(x * 0.04 + t * 4) * 4);
+        }
+        ctx.stroke();
+    }
+    
+    // Lane ropes
+    for (let i = 0; i <= 6; i++) {
+        const ropeColors = ['#e74c3c', '#f1c40f', '#ffffff'];
+        for (let j = 0; j < W; j += 12) {
+            ctx.fillStyle = ropeColors[Math.floor(j / 12) % 3];
+            ctx.beginPath();
+            ctx.arc(j + 6, i * laneH, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    // Pool walls
+    ctx.fillStyle = '#5d6d7e';
+    ctx.fillRect(0, 0, 22, H);
+    ctx.fillRect(W - 22, 0, 22, H);
+    
+    // Touch pads
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillRect(0, 0, 6, H);
+    ctx.fillRect(W - 6, 0, 6, H);
+    
+    // Starting blocks
+    ctx.fillStyle = '#7f8c8d';
+    for (let i = 0; i < 6; i++) {
+        ctx.fillRect(2, i * laneH + laneH / 2 - 8, 16, 16);
+    }
+    
+    // Camera follows player
+    const visibleDist = 40;
+    const camOffset = Math.max(0, playerPos - 10);
+    
+    // Distance markers (underwater lines)
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 2;
+    const markerStep = curDist > 200 ? 50 : 25;
+    for (let m = 0; m <= curDist; m += markerStep) {
+        const screenX = 22 + ((m - camOffset) / visibleDist) * (W - 44);
+        if (screenX >= 22 && screenX <= W - 22) {
+            ctx.beginPath();
+            ctx.moveTo(screenX, 0);
+            ctx.lineTo(screenX, H);
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '9px monospace';
+            ctx.fillText(m + 'm', screenX + 4, 18);
+        }
+    }
+    
+    // Draw CPU swimmers
+    cpus.forEach((cpu, i) => {
+        const cpuScreenX = 22 + ((cpu.pos - camOffset) / visibleDist) * (W - 44);
+        if (cpuScreenX >= 0 && cpuScreenX <= W) {
+            const laneY = (i + 1) * laneH + laneH / 2;
+            drawSwimmer(ctx, cpuScreenX, laneY, cpu.skin, cpu.color, cpu.goggles, cpu.cap, t, 1);
+        }
+    });
+    
+    // Draw player
+    const playerScreenX = 22 + ((playerPos - camOffset) / visibleDist) * (W - 44);
+    drawSwimmer(ctx, playerScreenX, laneH / 2, player.skin, player.outfit, player.goggles, player.cap, t, 1);
+    
+    // Player indicator
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('▼ YOU', playerScreenX, laneH / 2 - 22);
+    ctx.textAlign = 'left';
+}
+
+function drawRunner(ctx, x, y, skin, outfit, isFemale, scale, t) {
+    const s = scale;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 12 * s, 10 * s, 4 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Running animation
+    const legPhase = Math.sin(t * 18) * 12;
+    const armPhase = Math.sin(t * 18 + Math.PI) * 10;
+    
+    // Back leg
+    ctx.fillStyle = skin;
+    ctx.save();
+    ctx.translate(-2 * s, 0);
+    ctx.rotate((-15 - legPhase) * Math.PI / 180);
+    // Thigh
+    ctx.fillRect(-3 * s, 0, 6 * s, 10 * s);
+    // Shin
+    ctx.save();
+    ctx.translate(0, 10 * s);
+    ctx.rotate(10 * Math.PI / 180);
+    ctx.fillRect(-2.5 * s, 0, 5 * s, 9 * s);
+    // Shoe
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(-3 * s, 7 * s, 7 * s, 4 * s);
+    ctx.restore();
+    ctx.restore();
+    
+    // Front leg
+    ctx.fillStyle = skin;
+    ctx.save();
+    ctx.translate(2 * s, 0);
+    ctx.rotate((15 + legPhase) * Math.PI / 180);
+    // Thigh
+    ctx.fillRect(-3 * s, 0, 6 * s, 10 * s);
+    // Shin
+    ctx.save();
+    ctx.translate(0, 10 * s);
+    ctx.rotate(-10 * Math.PI / 180);
+    ctx.fillRect(-2.5 * s, 0, 5 * s, 9 * s);
+    // Shoe
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(-3 * s, 7 * s, 7 * s, 4 * s);
+    ctx.restore();
+    ctx.restore();
+    
+    // Shorts
+    ctx.fillStyle = outfit;
+    ctx.fillRect(-7 * s, -4 * s, 14 * s, 10 * s);
+    
+    // Torso
+    ctx.fillStyle = outfit;
+    ctx.fillRect(-8 * s, -22 * s, 16 * s, 19 * s);
+    
+    // Jersey stripe
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillRect(-1 * s, -20 * s, 2 * s, 15 * s);
+    
+    // Back arm
+    ctx.fillStyle = skin;
+    ctx.save();
+    ctx.translate(-8 * s, -18 * s);
+    ctx.rotate((20 - armPhase) * Math.PI / 180);
+    ctx.fillRect(-2 * s, 0, 4.5 * s, 11 * s);
+    ctx.restore();
+    
+    // Front arm
+    ctx.save();
+    ctx.translate(8 * s, -18 * s);
+    ctx.rotate((-20 + armPhase) * Math.PI / 180);
+    ctx.fillRect(-2.5 * s, 0, 4.5 * s, 11 * s);
+    ctx.restore();
+    
+    // Head
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(0, -28 * s, 8 * s, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Hair
+    if (isFemale) {
+        ctx.fillStyle = '#5D4037';
+        ctx.beginPath();
+        ctx.arc(0, -31 * s, 8 * s, Math.PI, 0);
+        ctx.fill();
+        // Ponytail
+        ctx.save();
+        ctx.translate(6 * s, -28 * s);
+        ctx.rotate(0.3);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 3 * s, 8 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    } else {
+        ctx.fillStyle = '#2c3e50';
+        ctx.beginPath();
+        ctx.arc(0, -32 * s, 7 * s, Math.PI * 0.75, Math.PI * 0.25);
+        ctx.fill();
+    }
+    
+    // Face
+    ctx.fillStyle = '#000';
+    // Eyes
+    ctx.fillRect(-3 * s, -30 * s, 2 * s, 2.5 * s);
+    ctx.fillRect(1 * s, -30 * s, 2 * s, 2.5 * s);
+    // Determined eyebrows
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-4 * s, -32 * s);
+    ctx.lineTo(-1 * s, -31 * s);
+    ctx.moveTo(4 * s, -32 * s);
+    ctx.lineTo(1 * s, -31 * s);
+    ctx.stroke();
+    
+    ctx.restore();
+}
+
+function drawSwimmer(ctx, x, y, skin, outfit, hasGoggles, hasCap, t, scale) {
+    const s = scale;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Body - horizontal swimming position
+    ctx.fillStyle = outfit;
+    const bodyWave = Math.sin(t * 10) * 2;
+    ctx.save();
+    ctx.rotate(bodyWave * 0.02);
+    
+    // Main body
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 22 * s, 8 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Swimsuit details
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-18 * s, 0);
+    ctx.lineTo(10 * s, 0);
+    ctx.stroke();
+    
+    ctx.restore();
+    
+    // Legs with kick animation
+    const kickPhase = Math.sin(t * 16);
+    ctx.fillStyle = skin;
+    
+    // Left leg
+    ctx.save();
+    ctx.translate(-20 * s, 3 * s);
+    ctx.rotate((kickPhase * 15) * Math.PI / 180);
+    ctx.fillRect(-12 * s, -2 * s, 14 * s, 4 * s);
+    // Foot
+    ctx.fillRect(-14 * s, -3 * s, 4 * s, 6 * s);
+    ctx.restore();
+    
+    // Right leg
+    ctx.save();
+    ctx.translate(-20 * s, -3 * s);
+    ctx.rotate((-kickPhase * 15) * Math.PI / 180);
+    ctx.fillRect(-12 * s, -2 * s, 14 * s, 4 * s);
+    // Foot
+    ctx.fillRect(-14 * s, -3 * s, 4 * s, 6 * s);
+    ctx.restore();
+    
+    // Arms with freestyle stroke animation
+    const strokePhase = (t * 3) % 1;
+    ctx.fillStyle = skin;
+    
+    // Left arm
+    ctx.save();
+    ctx.translate(8 * s, -5 * s);
+    const leftArmAngle = strokePhase < 0.5 ? strokePhase * 2 * Math.PI : (1 - (strokePhase - 0.5) * 2) * Math.PI * 0.3;
+    ctx.rotate(-leftArmAngle);
+    ctx.fillRect(0, -2 * s, 16 * s, 4 * s);
+    // Hand
+    ctx.beginPath();
+    ctx.ellipse(17 * s, 0, 3 * s, 4 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Right arm
+    ctx.save();
+    ctx.translate(8 * s, 5 * s);
+    const rightArmAngle = strokePhase < 0.5 ? (0.5 - strokePhase) * 2 * Math.PI * 0.3 : (strokePhase - 0.5) * 2 * Math.PI;
+    ctx.rotate(rightArmAngle);
+    ctx.fillRect(0, -2 * s, 16 * s, 4 * s);
+    // Hand
+    ctx.beginPath();
+    ctx.ellipse(17 * s, 0, 3 * s, 4 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Head
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(24 * s, 0, 8 * s, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Swim cap
+    if (hasCap) {
+        ctx.fillStyle = outfit;
+        ctx.beginPath();
+        ctx.arc(24 * s, -2 * s, 8 * s, Math.PI, 0);
+        ctx.fill();
+        ctx.fillRect(16 * s, -2 * s, 16 * s, 2 * s);
+    }
+    
+    // Goggles
+    if (hasGoggles) {
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(18 * s, -2 * s, 14 * s, 5 * s);
+        // Lenses
+        ctx.fillStyle = '#5dade2';
+        ctx.beginPath();
+        ctx.ellipse(21 * s, 0, 3 * s, 2.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(28 * s, 0, 3 * s, 2.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Strap
+        ctx.strokeStyle = '#1a1a2e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(24 * s, 0, 8 * s, Math.PI * 0.6, Math.PI * 0.4, true);
+        ctx.stroke();
+    }
+    
+    // Splash effect
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    for (let i = 0; i < 6; i++) {
+        const splashX = -28 * s - i * 6 * s + Math.sin(t * 12 + i) * 3 * s;
+        const splashY = Math.sin(t * 14 + i * 1.5) * 6 * s;
+        ctx.beginPath();
+        ctx.arc(splashX, splashY, (2 + Math.random()) * s, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Bubbles
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    for (let i = 0; i < 4; i++) {
+        const bubbleX = -20 * s - i * 10 * s;
+        const bubbleY = 8 * s + Math.sin(t * 8 + i * 2) * 4 * s;
+        ctx.beginPath();
+        ctx.arc(bubbleX, bubbleY, (1.5 + i * 0.3) * s, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    ctx.restore();
+}
+
+// ==================== END RACE ====================
+function endRace(time) {
+    running = false;
+    cancelAnimationFrame(anim);
+    
+    // Compile results
+    const allResults = [
+        { name: 'YOU', time: time, you: true },
+        ...cpus.map(c => ({ name: c.name, time: c.finished ? c.time : time + 10, you: false }))
+    ].sort((a, b) => a.time - b.time);
+    
+    const playerRank = allResults.findIndex(r => r.you) + 1;
+    
+    // Save score
+    saveScore(curGame, curDist, player.name, time);
+    
+    // Handle tournament
+    if (isTourn) {
+        tScores[tIdx] = time;
+        tIdx++;
+        updateTournamentUI();
+    }
+    
+    // Show results
+    document.getElementById('rIcon').textContent = playerRank === 1 ? '🥇' : playerRank === 2 ? '🥈' : playerRank === 3 ? '🥉' : '🏁';
+    document.getElementById('rTtl').textContent = playerRank === 1 ? 'GOLD MEDAL!' : playerRank <= 3 ? 'PODIUM FINISH!' : 'RACE COMPLETE';
+    document.getElementById('rScore').textContent = time.toFixed(2) + 's';
+    
+    document.getElementById('rRanks').innerHTML = allResults.map((r, i) => `
+        <div class="rank ${i === 0 ? 'gold' : ''} ${r.you ? 'you' : ''}">
+            <span>${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'} ${r.name}</span>
+            <span>${r.time.toFixed(2)}s</span>
+        </div>
+    `).join('');
+    
+    show('s7');
+}
+
+function retry() {
+    if (isTourn) {
+        tIdx = Math.max(0, tIdx - 1);
+        const ev = TOURNAMENT[tIdx];
+        curGame = ev.game;
+        curDist = ev.dist;
+    }
+    startRace();
+}
+
+// ==================== LEADERBOARD ====================
+function showLeaderboard(game, dist) {
+    // Game tabs
+    document.getElementById('lbGame').innerHTML = Object.entries(GAMES).map(([k, v]) =>
+        `<div class="opt ${k === game ? 'sel' : ''}" data-game="${k}">${v.icon} ${v.name}</div>`
+    ).join('');
+    
+    document.querySelectorAll('#lbGame .opt').forEach(el => {
+        tap(el, () => showLeaderboard(el.dataset.game, dist));
+    });
+    
+    // Distance tabs
+    document.getElementById('lbDist').innerHTML = DISTS.map(d =>
+        `<div class="opt ${d.m === dist ? 'sel' : ''}" data-dist="${d.m}">${d.name}</div>`
+    ).join('');
+    
+    document.querySelectorAll('#lbDist .opt').forEach(el => {
+        tap(el, () => showLeaderboard(game, parseInt(el.dataset.dist)));
+    });
+    
+    // Scores
+    const scores = load(`sc_${game}_${dist}`) || [];
+    
+    document.getElementById('lbList').innerHTML = scores.length === 0
+        ? '<div style="text-align:center;padding:25px;color:#555;"><div style="font-size:1.8rem;">📭</div><div style="font-size:0.4rem;margin-top:10px;">NO RECORDS YET</div></div>'
+        : scores.slice(0, 15).map((s, i) => `
+            <div class="rank ${i === 0 ? 'gold' : ''} ${s.n === player.name ? 'you' : ''}">
+                <span>${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'}</span>
+                <span style="flex:1;margin-left:10px;">${s.n}</span>
+                <span style="color:#f1c40f;">${s.t.toFixed(2)}s</span>
+            </div>
+        `).join('');
+}
+</script>
+</body>
+</html>
