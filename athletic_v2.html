@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🏃 Athletic Games 🏆</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0f0f1a;
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+        
+        .screen { display: none; min-height: 100vh; padding: 15px; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        
+        .title { font-size: 1.2rem; color: #f1c40f; text-shadow: 3px 3px 0 #e74c3c; text-align: center; margin: 15px 0; }
+        
+        .box { background: #1a1a2e; border: 4px solid white; padding: 20px; max-width: 400px; width: 100%; }
+        
+        button, .btn, .game-card, .avatar, .tab, .back, .ctrl, .outfit-opt, .color-opt {
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+        }
+        
+        .btn {
+            font-family: inherit;
+            font-size: 0.6rem;
+            padding: 14px 15px;
+            background: #3498db;
+            color: white;
+            border: 3px solid white;
+            width: 100%;
+            margin: 5px 0;
+            text-align: center;
+            display: block;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn.red { background: #e74c3c; }
+        .btn.green { background: #2ecc71; }
+        .btn.gold { background: #f1c40f; color: black; }
+        .btn:disabled { opacity: 0.4; }
+        
+        .input {
+            font-family: inherit;
+            font-size: 0.7rem;
+            padding: 12px;
+            background: #0f0f1a;
+            color: #f1c40f;
+            border: 3px solid white;
+            width: 100%;
+            text-align: center;
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+        
+        .avatars { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: #1a1a2e;
+            border: 3px solid white;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .avatar.sel { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
+        
+        .games { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 320px; margin-top: 20px; }
+        .game-card {
+            background: #1a1a2e;
+            border: 3px solid white;
+            padding: 15px 10px;
+            text-align: center;
+        }
+        .game-card:active { border-color: #f1c40f; }
+        .game-card .icon { font-size: 1.8rem; }
+        .game-card .name { font-size: 0.45rem; color: #f1c40f; margin-top: 8px; }
+        
+        #gameArea { width: 100%; max-width: 500px; }
+        
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            background: #1a1a2e;
+            border: 3px solid white;
+            padding: 8px 12px;
+            font-size: 0.55rem;
+            margin-bottom: 5px;
+        }
+        .hud .time { color: #2ecc71; font-size: 0.8rem; }
+        
+        #canvas {
+            width: 100%;
+            height: 250px;
+            border: 4px solid white;
+            background: #1a1a2e;
+            display: block;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+        
+        .ctrls { display: flex; gap: 12px; justify-content: center; margin-top: 15px; }
+        .ctrl {
+            font-family: inherit;
+            font-size: 1.4rem;
+            width: 75px;
+            height: 75px;
+            background: #e74c3c;
+            color: white;
+            border: 4px solid white;
+        }
+        .ctrl:active { background: #f1c40f; }
+        .ctrl.blue { background: #3498db; }
+        .ctrl.green { background: #2ecc71; }
+        
+        .info { font-size: 0.5rem; color: #888; text-align: center; margin: 10px 0; }
+        
+        .pbar { width: 100%; max-width: 280px; height: 22px; background: #0f0f1a; border: 3px solid white; margin: 10px auto; overflow: hidden; }
+        .pfill { height: 100%; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c); width: 0%; }
+        
+        .result { text-align: center; padding: 25px; }
+        .result .icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .result .ttl { font-size: 0.9rem; color: #f1c40f; margin-bottom: 8px; }
+        .result .score { font-size: 1.3rem; color: #2ecc71; margin-bottom: 20px; }
+        
+        .rank { display: flex; justify-content: space-between; padding: 8px; margin: 4px 0; background: #0f0f1a; border: 2px solid white; font-size: 0.5rem; }
+        .rank.gold { border-color: #f1c40f; }
+        
+        .back {
+            position: absolute; top: 10px; left: 10px;
+            font-family: inherit; font-size: 0.55rem; padding: 8px 12px;
+            background: #333; color: white; border: 2px solid white;
+        }
+        
+        .tabs { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .tab { font-family: inherit; font-size: 0.4rem; padding: 8px 10px; background: #1a1a2e; color: white; border: 2px solid white; }
+        .tab.on { background: #f1c40f; color: black; }
+        
+        .lbitem { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 4px 0; background: #1a1a2e; border: 2px solid white; font-size: 0.5rem; }
+        .lbitem.t1 { border-color: gold; }
+        .lbitem.t2 { border-color: silver; }
+        .lbitem.t3 { border-color: #cd6133; }
+        
+        .slot { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin: 5px 0; background: #1a1a2e; border: 2px solid white; font-size: 0.55rem; }
+        .slot.empty { border-style: dashed; opacity: 0.5; }
+        
+        .cd { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .cd.on { display: flex; }
+        .cd span { font-size: 5rem; color: #f1c40f; }
+        
+        /* Outfit Selection */
+        .outfit-section { margin: 15px 0; }
+        .outfit-title { font-size: 0.5rem; color: #f1c40f; margin-bottom: 10px; text-align: center; }
+        
+        .outfit-opts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .outfit-opt {
+            width: 70px;
+            height: 80px;
+            background: #0f0f1a;
+            border: 3px solid white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.4rem;
+        }
+        .outfit-opt .preview { font-size: 2rem; margin-bottom: 5px; }
+        .outfit-opt.sel { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
+        
+        .color-opts { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+        .color-opt {
+            width: 35px;
+            height: 35px;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+        .color-opt.sel { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; transform: scale(1.1); }
+        
+        .preview-canvas {
+            width: 120px;
+            height: 120px;
+            border: 3px solid #f1c40f;
+            margin: 15px auto;
+            background: #0f0f1a;
+        }
+        
+        .gender-opts { display: flex; gap: 15px; justify-content: center; margin: 15px 0; }
+        .gender-opt {
+            padding: 12px 25px;
+            background: #1a1a2e;
+            border: 3px solid white;
+            font-family: inherit;
+            font-size: 0.6rem;
+            color: white;
+        }
+        .gender-opt.sel { border-color: #f1c40f; background: #2a2a4e; }
+    </style>
+</head>
+<body>
+
+<div class="cd" id="cdBox"><span id="cdNum">3</span></div>
+
+<!-- REGISTER -->
+<div class="screen active" id="s1">
+    <h1 class="title">🏃 ATHLETIC<br>GAMES 🏆</h1>
+    <div class="box">
+        <p style="font-size:0.6rem;text-align:center;color:#f1c40f;margin-bottom:15px;">PLAYER REGISTRATION</p>
+        <input class="input" id="inpName" placeholder="YOUR NAME" maxlength="10">
+        
+        <div class="outfit-section">
+            <p class="outfit-title">SELECT GENDER</p>
+            <div class="gender-opts" id="genderOpts"></div>
+        </div>
+        
+        <div class="outfit-section">
+            <p class="outfit-title">SKIN COLOR</p>
+            <div class="color-opts" id="skinColors"></div>
+        </div>
+        
+        <button class="btn red" id="btnRegister">START GAME</button>
+    </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="s2">
+    <h1 class="title">🏃 ATHLETIC<br>GAMES 🏆</h1>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <canvas id="menuAvatar" width="50" height="50" style="border:2px solid #f1c40f;"></canvas>
+        <span id="mName" style="color:#f1c40f;font-size:0.7rem;">PLAYER</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:260px;">
+        <button class="btn red" id="btnQuick">🎮 QUICK PLAY</button>
+        <button class="btn gold" id="btnMulti">👥 MULTIPLAYER</button>
+        <button class="btn green" id="btnTourn">🏆 TOURNAMENT</button>
+        <button class="btn" id="btnLB">📊 LEADERBOARD</button>
+    </div>
+</div>
+
+<!-- SELECT GAME -->
+<div class="screen" id="s3">
+    <button class="back" id="backS3">← BACK</button>
+    <p style="font-size:0.8rem;color:#f1c40f;margin-top:40px;">SELECT EVENT</p>
+    <div class="games" id="gamesList"></div>
+</div>
+
+<!-- OUTFIT SELECTION -->
+<div class="screen" id="sOutfit">
+    <button class="back" id="backOutfit">← BACK</button>
+    <p style="font-size:0.8rem;color:#f1c40f;margin-top:40px;" id="outfitTitle">CUSTOMIZE</p>
+    
+    <div class="box" style="margin-top:15px;">
+        <canvas class="preview-canvas" id="outfitPreview" width="120" height="120"></canvas>
+        
+        <div class="outfit-section" id="outfitGear"></div>
+        
+        <div class="outfit-section">
+            <p class="outfit-title">OUTFIT COLOR</p>
+            <div class="color-opts" id="outfitColors"></div>
+        </div>
+        
+        <button class="btn gold" id="btnStartGame" style="margin-top:15px;">▶ START</button>
+    </div>
+</div>
+
+<!-- MULTI -->
+<div class="screen" id="s4">
+    <button class="back" id="backS4">← BACK</button>
+    <p style="font-size:0.8rem;color:#f1c40f;margin-top:40px;">MULTIPLAYER</p>
+    <div class="box" style="margin-top:15px;">
+        <p style="font-size:0.5rem;margin-bottom:10px;">PLAYERS (max 4)</p>
+        <div id="slots"></div>
+        <div id="addDiv" style="display:flex;gap:8px;margin-top:10px;">
+            <input class="input" id="inpNew" placeholder="NAME" maxlength="10" style="flex:1;">
+            <button class="btn green" id="btnAdd" style="width:50px;">+</button>
+        </div>
+    </div>
+    <button class="btn gold" id="btnStartM" disabled style="margin-top:15px;max-width:260px;">START GAME</button>
+</div>
+
+<!-- TOURNAMENT -->
+<div class="screen" id="s5">
+    <button class="back" id="backS5">← EXIT</button>
+    <p style="font-size:0.8rem;color:#f1c40f;margin-top:40px;">🏆 TOURNAMENT</p>
+    <div class="box" style="margin-top:15px;text-align:center;">
+        <p style="font-size:0.45rem;margin-bottom:12px;">Complete all 6 events!</p>
+        <div id="tList"></div>
+    </div>
+    <button class="btn gold" id="btnNextE" style="margin-top:15px;max-width:260px;">▶ NEXT EVENT</button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="s6">
+    <div id="gameArea">
+        <div class="hud">
+            <span id="hEvent">100M SPRINT</span>
+            <span class="time" id="hTime">00:00.00</span>
+        </div>
+        <canvas id="canvas" width="500" height="250"></canvas>
+        <p class="info" id="hInfo">TAP ◀ ▶ ALTERNATELY!</p>
+        <div class="pbar" id="pbar" style="display:none;"><div class="pfill" id="pfill"></div></div>
+        <div class="ctrls" id="ctrls"></div>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s7">
+    <div class="box result">
+        <div class="icon" id="rIcon">🏆</div>
+        <div class="ttl" id="rTtl">FINISH!</div>
+        <div class="score" id="rScore">9.85s</div>
+        <div id="rRanks"></div>
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center;">
+            <button class="btn red" id="btnRetry">🔄 RETRY</button>
+            <button class="btn" id="btnCont">CONTINUE</button>
+        </div>
+    </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="s8">
+    <button class="back" id="backS8">← BACK</button>
+    <p style="font-size:0.8rem;color:#f1c40f;margin-top:40px;">📊 LEADERBOARD</p>
+    <div class="tabs" id="lbTabs"></div>
+    <div id="lbList" style="width:100%;max-width:380px;"></div>
+</div>
+
+<script>
+// CONFIG
+const GAMES = {
+    sprint: { name: '100M SPRINT', icon: '🏃', unit: 's', low: true, type: 'race' },
+    swim: { name: 'SWIMMING', icon: '🏊', unit: 's', low: true, type: 'swim' },
+    hurdles: { name: 'HURDLES', icon: '🚧', unit: 's', low: true, type: 'hurdles' },
+    javelin: { name: 'JAVELIN', icon: '🎯', unit: 'm', low: false, type: 'throw' },
+    longjump: { name: 'LONG JUMP', icon: '📏', unit: 'm', low: false, type: 'throw' },
+    lift: { name: 'WEIGHTLIFT', icon: '🏋️', unit: 'kg', low: false, type: 'lift' }
+};
+
+const OUTFITS = {
+    sprint: { 
+        name: 'RUNNING GEAR',
+        options: [
+            { id: 'tank', name: 'TANK TOP', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' },
+            { id: 'sleeveless', name: 'SLEEVELESS', icon: '🦺' }
+        ]
+    },
+    swim: { 
+        name: 'SWIMWEAR',
+        options: [
+            { id: 'speedo', name: 'SPEEDO', icon: '🩲' },
+            { id: 'swimsuit', name: 'SWIMSUIT', icon: '👙' },
+            { id: 'fullsuit', name: 'FULL SUIT', icon: '🏊' }
+        ],
+        accessories: [
+            { id: 'goggles', name: 'GOGGLES', icon: '🥽' },
+            { id: 'cap', name: 'SWIM CAP', icon: '🎓' }
+        ]
+    },
+    hurdles: { 
+        name: 'TRACK SUIT',
+        options: [
+            { id: 'tank', name: 'TANK TOP', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' },
+            { id: 'sleeveless', name: 'SLEEVELESS', icon: '🦺' }
+        ]
+    },
+    javelin: { 
+        name: 'THROWING GEAR',
+        options: [
+            { id: 'tank', name: 'TANK TOP', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' }
+        ]
+    },
+    longjump: { 
+        name: 'JUMP SUIT',
+        options: [
+            { id: 'tank', name: 'TANK TOP', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' },
+            { id: 'bodysuit', name: 'BODYSUIT', icon: '🩱' }
+        ]
+    },
+    lift: { 
+        name: 'LIFTING GEAR',
+        options: [
+            { id: 'singlet', name: 'SINGLET', icon: '🎽' },
+            { id: 'tank', name: 'TANK TOP', icon: '👕' }
+        ],
+        accessories: [
+            { id: 'belt', name: 'BELT', icon: '🥋' }
+        ]
+    }
+};
+
+const SKIN_COLORS = ['#ffd93d', '#f5cba7', '#dc7633', '#a04000', '#6e2c00'];
+const OUTFIT_COLORS = ['#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c', '#e91e63', '#000000'];
+
+const EVS = ['sprint','swim','hurdles','javelin','longjump','lift'];
+
+// STATE
+let player = { 
+    name: 'PLAYER', 
+    gender: 'male',
+    skin: '#ffd93d',
+    outfits: {}
+};
+let players = [];
+let curGame = null;
+let curOutfit = { style: 'tank', color: '#3498db', goggles: true, cap: true, belt: false };
+let isMulti = false, isTourn = false;
+let tIdx = 0, tScores = {};
+let mIdx = 0, mScores = [];
+
+// GAME
+let canvas, ctx, W = 500, H = 250;
+let running = false, startT = 0;
+let pos = 0, speed = 0, lastK = 'R';
+let power = 0, pDir = 1, angle = 45;
+let phase = 'run', jumpY = 0;
+let hurdles = [];
+let anim;
+
+// STORAGE
+const save = (k, v) => localStorage.setItem('ag_' + k, JSON.stringify(v));
+const load = k => { try { return JSON.parse(localStorage.getItem('ag_' + k)); } catch { return null; } };
+function saveScore(g, n, s) {
+    let arr = load('sc_' + g) || [];
+    arr.push({ n, s, d: Date.now() });
+    arr.sort((x, y) => GAMES[g].low ? x.s - y.s : y.s - x.s);
+    save('sc_' + g, arr.slice(0, 20));
+}
+const getScores = g => load('sc_' + g) || [];
+
+// TOUCH HELPER
+function tap(el, fn) {
+    if (!el) return;
+    let moved = false;
+    el.addEventListener('touchstart', () => moved = false, { passive: true });
+    el.addEventListener('touchmove', () => moved = true, { passive: true });
+    el.addEventListener('touchend', e => { if (!moved) { e.preventDefault(); fn(e); } }, { passive: false });
+    el.addEventListener('click', fn);
+}
+
+// SCREENS
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded', () => {
+    // Gender options
+    const genderDiv = document.getElementById('genderOpts');
+    ['male', 'female'].forEach((g, i) => {
+        const d = document.createElement('div');
+        d.className = 'gender-opt' + (i === 0 ? ' sel' : '');
+        d.textContent = g === 'male' ? '👨 MALE' : '👩 FEMALE';
+        d.dataset.gender = g;
+        tap(d, () => {
+            document.querySelectorAll('.gender-opt').forEach(x => x.classList.remove('sel'));
+            d.classList.add('sel');
+            player.gender = g;
+        });
+        genderDiv.appendChild(d);
+    });
+    
+    // Skin colors
+    const skinDiv = document.getElementById('skinColors');
+    SKIN_COLORS.forEach((c, i) => {
+        const d = document.createElement('div');
+        d.className = 'color-opt' + (i === 0 ? ' sel' : '');
+        d.style.background = c;
+        d.dataset.color = c;
+        tap(d, () => {
+            document.querySelectorAll('#skinColors .color-opt').forEach(x => x.classList.remove('sel'));
+            d.classList.add('sel');
+            player.skin = c;
+        });
+        skinDiv.appendChild(d);
+    });
+    
+    // Games
+    const gDiv = document.getElementById('gamesList');
+    Object.entries(GAMES).forEach(([k, v]) => {
+        const d = document.createElement('div');
+        d.className = 'game-card';
+        d.innerHTML = `<div class="icon">${v.icon}</div><div class="name">${v.name}</div>`;
+        tap(d, () => showOutfitScreen(k));
+        gDiv.appendChild(d);
+    });
+    
+    // Buttons
+    tap(document.getElementById('btnRegister'), register);
+    tap(document.getElementById('btnQuick'), () => show('s3'));
+    tap(document.getElementById('btnMulti'), () => { updateSlots(); show('s4'); });
+    tap(document.getElementById('btnTourn'), startTourn);
+    tap(document.getElementById('btnLB'), () => { showLB('sprint'); show('s8'); });
+    tap(document.getElementById('backS3'), () => show('s2'));
+    tap(document.getElementById('backS4'), () => show('s2'));
+    tap(document.getElementById('backS5'), exitTourn);
+    tap(document.getElementById('backS8'), () => show('s2'));
+    tap(document.getElementById('backOutfit'), () => show('s3'));
+    tap(document.getElementById('btnAdd'), addPlayer);
+    tap(document.getElementById('btnStartM'), () => show('s3'));
+    tap(document.getElementById('btnNextE'), nextTournEv);
+    tap(document.getElementById('btnRetry'), retry);
+    tap(document.getElementById('btnCont'), cont);
+    tap(document.getElementById('btnStartGame'), startFromOutfit);
+});
+
+function register() {
+    player.name = document.getElementById('inpName').value.trim().toUpperCase() || 'PLAYER';
+    players = [player];
+    document.getElementById('mName').textContent = player.name;
+    
+    // Draw avatar on menu
+    drawMenuAvatar();
+    
+    show('s2');
+}
+
+function drawMenuAvatar() {
+    const c = document.getElementById('menuAvatar');
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0f0f1a';
+    ctx.fillRect(0, 0, 50, 50);
+    
+    // Body
+    ctx.fillStyle = '#3498db';
+    ctx.fillRect(15, 25, 20, 20);
+    
+    // Head
+    ctx.fillStyle = player.skin;
+    ctx.beginPath();
+    ctx.arc(25, 18, 12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Hair for female
+    if (player.gender === 'female') {
+        ctx.fillStyle = '#4a3728';
+        ctx.beginPath();
+        ctx.arc(25, 15, 12, Math.PI, 0);
+        ctx.fill();
+        ctx.fillRect(13, 15, 4, 15);
+        ctx.fillRect(33, 15, 4, 15);
+    }
+}
+
+// OUTFIT SCREEN
+function showOutfitScreen(gameId) {
+    curGame = gameId;
+    const outfit = OUTFITS[gameId];
+    
+    document.getElementById('outfitTitle').textContent = outfit.name;
+    
+    // Reset current outfit
+    curOutfit = { 
+        style: outfit.options[0].id, 
+        color: '#3498db', 
+        goggles: gameId === 'swim',
+        cap: gameId === 'swim',
+        belt: gameId === 'lift'
+    };
+    
+    // Gear options
+    const gearDiv = document.getElementById('outfitGear');
+    gearDiv.innerHTML = '<p class="outfit-title">STYLE</p><div class="outfit-opts" id="styleOpts"></div>';
+    
+    const styleOpts = document.getElementById('styleOpts');
+    outfit.options.forEach((opt, i) => {
+        const d = document.createElement('div');
+        d.className = 'outfit-opt' + (i === 0 ? ' sel' : '');
+        d.innerHTML = `<div class="preview">${opt.icon}</div><div>${opt.name}</div>`;
+        d.dataset.style = opt.id;
+        tap(d, () => {
+            document.querySelectorAll('#styleOpts .outfit-opt').forEach(x => x.classList.remove('sel'));
+            d.classList.add('sel');
+            curOutfit.style = opt.id;
+            drawOutfitPreview();
+        });
+        styleOpts.appendChild(d);
+    });
+    
+    // Accessories for swim and lift
+    if (outfit.accessories) {
+        gearDiv.innerHTML += '<p class="outfit-title" style="margin-top:15px;">ACCESSORIES</p><div class="outfit-opts" id="accOpts"></div>';
+        
+        setTimeout(() => {
+            const accOpts = document.getElementById('accOpts');
+            outfit.accessories.forEach(opt => {
+                const d = document.createElement('div');
+                d.className = 'outfit-opt sel';
+                d.innerHTML = `<div class="preview">${opt.icon}</div><div>${opt.name}</div>`;
+                d.dataset.acc = opt.id;
+                tap(d, () => {
+                    d.classList.toggle('sel');
+                    curOutfit[opt.id] = d.classList.contains('sel');
+                    drawOutfitPreview();
+                });
+                accOpts.appendChild(d);
+            });
+        }, 10);
+    }
+    
+    // Colors
+    const colorDiv = document.getElementById('outfitColors');
+    colorDiv.innerHTML = '';
+    OUTFIT_COLORS.forEach((c, i) => {
+        const d = document.createElement('div');
+        d.className = 'color-opt' + (i === 0 ? ' sel' : '');
+        d.style.background = c;
+        d.dataset.color = c;
+        tap(d, () => {
+            document.querySelectorAll('#outfitColors .color-opt').forEach(x => x.classList.remove('sel'));
+            d.classList.add('sel');
+            curOutfit.color = c;
+            drawOutfitPreview();
+        });
+        colorDiv.appendChild(d);
+    });
+    
+    show('sOutfit');
+    setTimeout(drawOutfitPreview, 50);
+}
+
+function drawOutfitPreview() {
+    const c = document.getElementById('outfitPreview');
+    const ctx = c.getContext('2d');
+    const W = 120, H = 120;
+    
+    ctx.fillStyle = '#0f0f1a';
+    ctx.fillRect(0, 0, W, H);
+    
+    const cx = W / 2;
+    const type = GAMES[curGame].type;
+    
+    if (type === 'swim') {
+        // Swimming pose (horizontal)
+        // Body
+        ctx.fillStyle = curOutfit.color;
+        ctx.fillRect(cx - 30, 55, 60, 18);
+        
+        // Head
+        ctx.fillStyle = player.skin;
+        ctx.beginPath();
+        ctx.arc(cx + 35, 64, 14, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Swim cap
+        if (curOutfit.cap) {
+            ctx.fillStyle = curOutfit.color;
+            ctx.beginPath();
+            ctx.arc(cx + 35, 61, 14, Math.PI, 0);
+            ctx.fill();
+        }
+        
+        // Goggles
+        if (curOutfit.goggles) {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(cx + 26, 60, 20, 6);
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(cx + 28, 61, 7, 4);
+            ctx.fillRect(cx + 38, 61, 7, 4);
+        }
+        
+        // Arms
+        ctx.fillStyle = player.skin;
+        ctx.fillRect(cx - 35, 50, 12, 6);
+        ctx.fillRect(cx + 25, 70, 12, 6);
+        
+    } else if (type === 'lift') {
+        // Lifting pose
+        // Legs
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(cx - 15, 85, 12, 25);
+        ctx.fillRect(cx + 3, 85, 12, 25);
+        
+        // Body
+        ctx.fillStyle = curOutfit.color;
+        if (curOutfit.style === 'singlet') {
+            ctx.fillRect(cx - 18, 45, 36, 42);
+        } else {
+            ctx.fillRect(cx - 16, 45, 32, 40);
+        }
+        
+        // Belt
+        if (curOutfit.belt) {
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(cx - 18, 75, 36, 8);
+        }
+        
+        // Head
+        ctx.fillStyle = player.skin;
+        ctx.beginPath();
+        ctx.arc(cx, 32, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Arms (raised)
+        ctx.fillStyle = player.skin;
+        ctx.fillRect(cx - 28, 30, 10, 25);
+        ctx.fillRect(cx + 18, 30, 10, 25);
+        
+        // Barbell
+        ctx.fillStyle = '#bdc3c7';
+        ctx.fillRect(cx - 40, 20, 80, 6);
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(cx - 45, 12, 12, 22);
+        ctx.fillRect(cx + 33, 12, 12, 22);
+        
+    } else {
+        // Running/jumping pose
+        // Legs
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(cx - 12, 80, 10, 28);
+        ctx.fillRect(cx + 2, 75, 10, 28);
+        
+        // Body
+        ctx.fillStyle = curOutfit.color;
+        ctx.fillRect(cx - 14, 45, 28, 38);
+        
+        // Arms
+        ctx.fillStyle = player.skin;
+        ctx.fillRect(cx - 24, 48, 10, 6);
+        ctx.fillRect(cx + 14, 55, 10, 6);
+        
+        // Head
+        ctx.fillStyle = player.skin;
+        ctx.beginPath();
+        ctx.arc(cx, 32, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Hair for female
+        if (player.gender === 'female') {
+            ctx.fillStyle = '#4a3728';
+            ctx.beginPath();
+            ctx.arc(cx, 28, 15, Math.PI, 0);
+            ctx.fill();
+            // Ponytail
+            ctx.fillRect(cx + 10, 25, 15, 6);
+        }
+    }
+}
+
+function startFromOutfit() {
+    player.outfits[curGame] = { ...curOutfit };
+    playGame(curGame);
+}
+
+// MULTI
+function updateSlots() {
+    const div = document.getElementById('slots');
+    div.innerHTML = '';
+    players.forEach((p, i) => {
+        const s = document.createElement('div');
+        s.className = 'slot';
+        s.innerHTML = `<span>👤 ${p.name}</span>` + (i === 0 ? '<span style="color:#f1c40f">HOST</span>' : '<button class="xbtn" style="background:#e74c3c;border:none;color:white;padding:4px 10px;font-family:inherit;font-size:0.5rem;">✕</button>');
+        if (i > 0) {
+            const btn = s.querySelector('.xbtn');
+            tap(btn, () => { players.splice(i, 1); updateSlots(); });
+        }
+        div.appendChild(s);
+    });
+    for (let i = players.length; i < 4; i++) {
+        const s = document.createElement('div');
+        s.className = 'slot empty';
+        s.textContent = 'EMPTY';
+        div.appendChild(s);
+    }
+    document.getElementById('addDiv').style.display = players.length < 4 ? 'flex' : 'none';
+    document.getElementById('btnStartM').disabled = players.length < 2;
+}
+
+function addPlayer() {
+    if (players.length >= 4) return;
+    const n = document.getElementById('inpNew').value.trim().toUpperCase();
+    if (!n) return;
+    players.push({ name: n, gender: 'male', skin: SKIN_COLORS[players.length % 5], outfits: {} });
+    document.getElementById('inpNew').value = '';
+    updateSlots();
+}
+
+// TOURNAMENT
+function startTourn() {
+    isTourn = true; isMulti = false;
+    tIdx = 0; tScores = {};
+    updateTournUI();
+    show('s5');
+}
+
+function updateTournUI() {
+    document.getElementById('tList').innerHTML = EVS.map((g, i) => {
+        const info = GAMES[g], sc = tScores[g];
+        const done = i < tIdx, cur = i === tIdx;
+        return `<div style="display:flex;justify-content:space-between;padding:5px;border-bottom:1px solid #333;color:${done ? '#2ecc71' : cur ? '#f1c40f' : '#666'}">
+            <span>${done ? '✓' : cur ? '→' : ''} ${info.icon} ${info.name}</span>
+            <span style="color:#f1c40f">${sc !== undefined ? sc + info.unit : '-'}</span>
+        </div>`;
+    }).join('');
+    
+    const btn = document.getElementById('btnNextE');
+    btn.textContent = tIdx >= 6 ? '🏆 VIEW RESULTS' : '▶ NEXT EVENT';
+}
+
+function nextTournEv() {
+    if (tIdx >= 6) { showTournRes(); return; }
+    showOutfitScreen(EVS[tIdx]);
+}
+
+function showTournRes() {
+    let total = 0;
+    Object.entries(tScores).forEach(([g, s]) => {
+        total += GAMES[g].low ? Math.max(0, 100 - s * 5) : s;
+    });
+    document.getElementById('rIcon').textContent = '🏆';
+    document.getElementById('rTtl').textContent = 'TOURNAMENT COMPLETE!';
+    document.getElementById('rScore').textContent = Math.round(total) + ' PTS';
+    document.getElementById('rRanks').innerHTML = Object.entries(tScores).map(([g, s]) => {
+        const info = GAMES[g];
+        return `<div class="rank"><span>${info.icon} ${info.name}</span><span>${s}${info.unit}</span></div>`;
+    }).join('');
+    isTourn = false;
+    show('s7');
+}
+
+function exitTourn() { isTourn = false; show('s2'); }
+
+// PLAY
+function playGame(g) {
+    curGame = g;
+    isMulti = players.length > 1 && !isTourn;
+    if (isMulti) { mIdx = 0; mScores = []; }
+    initGame();
+}
+
+function initGame() {
+    const info = GAMES[curGame];
+    document.getElementById('hEvent').textContent = info.name;
+    
+    running = false;
+    pos = 0; speed = 0;
+    power = 0; pDir = 1; angle = 45;
+    phase = 'run'; jumpY = 0; lastK = 'R';
+    hurdles = curGame === 'hurdles' ? [{x:18,h:0},{x:34,h:0},{x:50,h:0},{x:66,h:0},{x:82,h:0}] : [];
+    
+    // Get current outfit
+    curOutfit = player.outfits[curGame] || { style: 'tank', color: '#3498db', goggles: true, cap: true, belt: false };
+    
+    setupCtrls(info.type);
+    show('s6');
+    
+    setTimeout(() => {
+        canvas = document.getElementById('canvas');
+        canvas.width = 500; canvas.height = 250;
+        W = 500; H = 250;
+        ctx = canvas.getContext('2d', { alpha: false });
+        
+        drawFrame(0);
+        requestAnimationFrame(() => drawFrame(0));
+        
+        countdown(() => {
+            startT = Date.now();
+            running = true;
+            loop();
+        });
+    }, 100);
+}
+
+function setupCtrls(type) {
+    const div = document.getElementById('ctrls');
+    const pb = document.getElementById('pbar');
+    const info = document.getElementById('hInfo');
+    
+    div.innerHTML = '';
+    pb.style.display = 'none';
+    
+    if (type === 'race' || type === 'swim') {
+        info.textContent = 'TAP ◀ ▶ ALTERNATELY AS FAST AS YOU CAN!';
+        addCtrl(div, '◀', 'blue', () => doTap('L'));
+        addCtrl(div, '▶', 'green', () => doTap('R'));
+    } else if (type === 'hurdles') {
+        info.textContent = 'TAP ◀ ▶ TO RUN, ⬆ TO JUMP!';
+        addCtrl(div, '◀', 'blue', () => doTap('L'));
+        addCtrl(div, '▶', 'green', () => doTap('R'));
+        addCtrl(div, '⬆', '', doJump);
+    } else if (type === 'throw') {
+        info.textContent = 'TAP TO SET POWER, THEN ANGLE!';
+        pb.style.display = 'block';
+        addCtrl(div, 'TAP!', 'gold', doAction, 140);
+    } else if (type === 'lift') {
+        info.textContent = 'TAP ◀ ▶ FAST TO LIFT! KEEP BALANCED!';
+        pb.style.display = 'block';
+        addCtrl(div, '◀', 'blue', () => doTap('L'));
+        addCtrl(div, '▶', 'green', () => doTap('R'));
+    }
+}
+
+function addCtrl(parent, txt, cls, fn, w) {
+    const b = document.createElement('button');
+    b.className = 'ctrl' + (cls ? ' ' + cls : '');
+    b.textContent = txt;
+    if (w) b.style.width = w + 'px';
+    tap(b, fn);
+    parent.appendChild(b);
+}
+
+function doTap(side) {
+    if (!running) return;
+    const type = GAMES[curGame].type;
+    if (type === 'race' || type === 'swim' || type === 'hurdles') {
+        speed += (side !== lastK) ? 0.5 : 0.2;
+        lastK = side;
+    } else if (type === 'lift') {
+        power += side === 'L' ? -3 : 3;
+        speed += 0.3;
+    }
+}
+
+function doJump() { if (running && jumpY === 0) jumpY = 1; }
+
+function doAction() {
+    if (!running) return;
+    if (phase === 'run') phase = 'angle';
+    else if (phase === 'angle') phase = 'fly';
+}
+
+function countdown(cb) {
+    const ov = document.getElementById('cdBox');
+    const num = document.getElementById('cdNum');
+    ov.classList.add('on');
+    let c = 3;
+    num.textContent = c;
+    
+    const redraw = setInterval(() => drawFrame(0), 80);
+    const iv = setInterval(() => {
+        c--;
+        if (c > 0) num.textContent = c;
+        else if (c === 0) num.textContent = 'GO!';
+        else { clearInterval(iv); clearInterval(redraw); ov.classList.remove('on'); cb(); }
+    }, 700);
+}
+
+function loop() {
+    if (!running) return;
+    const t = (Date.now() - startT) / 1000;
+    document.getElementById('hTime').textContent = fmtTime(t);
+    drawFrame(t);
+    speed *= 0.96;
+    anim = requestAnimationFrame(loop);
+}
+
+function fmtTime(s) {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60), ms = Math.floor((s % 1) * 100);
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${String(ms).padStart(2,'0')}`;
+}
+
+// DRAW
+function drawFrame(t) {
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(0, 0, W, H);
+    
+    const type = GAMES[curGame].type;
+    if (type === 'race') drawRace(t);
+    else if (type === 'swim') drawSwim(t);
+    else if (type === 'hurdles') drawHurdles(t);
+    else if (type === 'throw') drawThrow(t);
+    else if (type === 'lift') drawLift(t);
+}
+
+function drawRace(t) {
+    const tY = H * 0.45;
+    
+    ctx.fillStyle = '#2980b9';
+    ctx.fillRect(0, 0, W, tY);
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(30, 15, 40, 12);
+    ctx.fillRect(120, 25, 55, 15);
+    ctx.fillRect(250, 18, 35, 10);
+    
+    ctx.fillStyle = '#34495e';
+    ctx.fillRect(0, tY - 30, W, 30);
+    
+    const cols = ['#e74c3c','#3498db','#f39c12','#9b59b6','#2ecc71'];
+    for (let r = 0; r < 2; r++) {
+        for (let c = 0; c < W / 8; c++) {
+            ctx.fillStyle = cols[(c + r) % 5];
+            ctx.beginPath();
+            ctx.arc(c * 8 + 4, tY - 22 + r * 12, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(0, tY, W, H - tY);
+    
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, tY + i * 28);
+        ctx.lineTo(W, tY + i * 28);
+        ctx.stroke();
+    }
+    
+    const fX = W - 30;
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 2; c++) {
+            ctx.fillStyle = (r + c) % 2 ? 'black' : 'white';
+            ctx.fillRect(fX + c * 7, tY + r * 28, 7, 28);
+        }
+    }
+    
+    pos += speed;
+    
+    const cpuSp = [7.5, 8.2, 6.8];
+    const cpuCols = ['#e74c3c','#9b59b6','#1abc9c'];
+    for (let i = 0; i < 3; i++) {
+        const cp = Math.min(100, t * cpuSp[i]);
+        const cx = 25 + (cp / 100) * (fX - 25);
+        drawRunner(cx, tY + 42 + i * 28, t, cpuCols[i], SKIN_COLORS[(i+1)%5], false);
+    }
+    
+    const px = 25 + (pos / 100) * (fX - 25);
+    drawRunner(px, tY + 14, t, curOutfit.color, player.skin, player.gender === 'female');
+    
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '8px monospace';
+    ctx.fillText('YOU', px - 10, tY + 5);
+    
+    if (pos >= 100) endGame(t.toFixed(2));
+}
+
+function drawSwim(t) {
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#1a5276');
+    grad.addColorStop(0.5, '#2980b9');
+    grad.addColorStop(1, '#1a5276');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    
+    const lh = H / 5;
+    for (let i = 0; i <= 5; i++) {
+        const colors = ['#e74c3c', '#f1c40f'];
+        for (let j = 0; j < W; j += 12) {
+            ctx.fillStyle = colors[Math.floor(j / 12) % 2];
+            ctx.beginPath();
+            ctx.arc(j + 6, i * lh, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    ctx.fillStyle = '#7f8c8d';
+    ctx.fillRect(0, 0, 20, H);
+    ctx.fillRect(W - 20, 0, 20, H);
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillRect(W - 20, 0, 3, H);
+    
+    pos += speed;
+    
+    const cpuSp = [7, 7.8, 6.5, 8];
+    const cpuCols = ['#e74c3c','#9b59b6','#1abc9c','#e67e22'];
+    for (let i = 0; i < 4; i++) {
+        const cp = Math.min(100, t * cpuSp[i]);
+        const cx = 30 + (cp / 100) * (W - 60);
+        drawSwimmer(cx, lh * (i + 1.5), t, cpuCols[i], SKIN_COLORS[(i+1)%5], true, true);
+    }
+    
+    const px = 30 + (pos / 100) * (W - 60);
+    drawSwimmer(px, lh * 0.5, t, curOutfit.color, player.skin, curOutfit.goggles, curOutfit.cap);
+    
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '8px monospace';
+    ctx.fillText('YOU', px - 10, lh * 0.5 - 18);
+    
+    if (pos >= 100) endGame(t.toFixed(2));
+}
+
+function drawHurdles(t) {
+    const tY = H * 0.45;
+    
+    ctx.fillStyle = '#2980b9';
+    ctx.fillRect(0, 0, W, tY);
+    
+    ctx.fillStyle = '#34495e';
+    ctx.fillRect(0, tY - 25, W, 25);
+    
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(0, tY, W, H - tY);
+    
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, tY);
+    ctx.lineTo(W, tY);
+    ctx.stroke();
+    
+    pos += speed;
+    
+    if (jumpY > 0) {
+        jumpY += 0.7;
+        if (jumpY > 12) jumpY = -12;
+    } else if (jumpY < 0) {
+        jumpY += 0.7;
+        if (jumpY > 0) jumpY = 0;
+    }
+    
+    const px = 40 + (pos / 100) * (W - 80);
+    const jOff = jumpY > 0 ? -jumpY * 4 : jumpY * 4;
+    
+    hurdles.forEach(h => {
+        const hx = (h.x / 100) * W;
+        ctx.fillStyle = '#f39c12';
+        ctx.fillRect(hx - 2, tY + 15, 4, 30);
+        ctx.fillRect(hx + 22, tY + 15, 4, 30);
+        ctx.fillStyle = h.h ? '#2ecc71' : '#e74c3c';
+        ctx.fillRect(hx - 3, tY + 12, 30, 5);
+        
+        if (!h.h && Math.abs(px - hx - 12) < 18 && pos > h.x - 5) {
+            if (jOff > -18) { speed *= 0.3; h.h = 1; }
+            else h.h = 1;
+        }
+    });
+    
+    const fX = W - 25;
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 2; c++) {
+            ctx.fillStyle = (r + c) % 2 ? 'black' : 'white';
+            ctx.fillRect(fX + c * 6, tY + r * 22, 6, 22);
+        }
+    }
+    
+    drawRunner(px, tY + 25 + jOff, t, curOutfit.color, player.skin, player.gender === 'female');
+    
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '8px monospace';
+    ctx.fillText('YOU', px - 10, tY + 8 + jOff);
+    
+    if (pos >= 100) endGame(t.toFixed(2));
+}
+
+function drawThrow(t) {
+    const gY = H * 0.6;
+    
+    ctx.fillStyle = '#87CEEB';
+    ctx.fillRect(0, 0, W, gY);
+    
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath();
+    ctx.arc(W - 40, 30, 20, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#27ae60';
+    ctx.fillRect(0, gY, W, H - gY);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '8px monospace';
+    for (let m = 20; m <= 80; m += 20) {
+        const mx = 50 + (m / 100) * (W - 90);
+        ctx.fillRect(mx, gY, 2, 8);
+        ctx.fillText(m + 'm', mx - 8, gY + 20);
+    }
+    
+    const tx = 40, ty = gY - 5;
+    
+    if (phase === 'run' || phase === 'angle') {
+        power += pDir * 2;
+        if (power >= 100 || power <= 0) pDir *= -1;
+        document.getElementById('pfill').style.width = power + '%';
+        
+        drawThrower(tx, ty, phase === 'angle', curOutfit.color, player.skin, player.gender === 'female');
+        
+        if (phase === 'angle') {
+            angle += pDir * 1.5;
+            if (angle >= 55 || angle <= 25) pDir *= -1;
+            
+            ctx.strokeStyle = '#f1c40f';
+            ctx.lineWidth = 3;
+            ctx.save();
+            ctx.translate(tx + 15, ty - 20);
+            ctx.rotate(-angle * Math.PI / 180);
+            ctx.fillStyle = '#f1c40f';
+            ctx.fillRect(0, -2, 40, 4);
+            ctx.restore();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '10px monospace';
+            ctx.fillText(Math.round(angle) + '°', tx + 60, ty - 35);
+        }
+        
+        ctx.fillStyle = 'white';
+        ctx.font = '9px monospace';
+        ctx.fillText(phase === 'run' ? 'TAP FOR POWER!' : 'TAP FOR ANGLE!', W/2 - 60, 20);
+        
+    } else if (phase === 'fly') {
+        const maxD = (power / 100) * Math.sin(2 * angle * Math.PI / 180) * 100;
+        pos += 2.5;
+        const prog = Math.min(1, pos / 50);
+        const projX = tx + 20 + prog * maxD * (W - 90) / 100;
+        const projY = ty - 20 - Math.sin(prog * Math.PI) * 100;
+        
+        ctx.strokeStyle = 'rgba(241,196,15,0.4)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(tx + 20, ty - 20);
+        ctx.quadraticCurveTo(tx + 20 + maxD * (W - 90) / 200, ty - 120, tx + 20 + maxD * (W - 90) / 100, gY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        if (curGame === 'javelin') {
+            ctx.save();
+            ctx.translate(projX, projY);
+            ctx.rotate(-angle * (1 - prog) * Math.PI / 180);
+            ctx.fillStyle = '#e67e22';
+            ctx.fillRect(-15, -2, 35, 4);
+            ctx.fillStyle = '#c0392b';
+            ctx.beginPath();
+            ctx.moveTo(20, 0);
+            ctx.lineTo(26, -3);
+            ctx.lineTo(26, 3);
+            ctx.fill();
+            ctx.restore();
+        } else {
+            ctx.fillStyle = curOutfit.color;
+            ctx.save();
+            ctx.translate(projX, projY);
+            ctx.rotate(prog * Math.PI * 0.3);
+            ctx.fillRect(-8, -12, 16, 24);
+            ctx.fillStyle = player.skin;
+            ctx.beginPath();
+            ctx.arc(0, -18, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        drawThrower(tx, ty, false, curOutfit.color, player.skin, player.gender === 'female');
+        
+        ctx.fillStyle = '#f1c40f';
+        ctx.font = '12px monospace';
+        ctx.fillText((maxD * prog).toFixed(1) + 'm', projX - 20, projY - 20);
+        
+        if (prog >= 1) endGame(maxD.toFixed(2));
+    }
+}
+
+function drawLift(t) {
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(0, 0, W, H);
+    
+    ctx.fillStyle = '#1a252f';
+    ctx.fillRect(0, H * 0.68, W, H * 0.32);
+    
+    ctx.fillStyle = '#34495e';
+    ctx.fillRect(0, 0, W, 40);
+    const cols = ['#e74c3c','#3498db','#f39c12','#9b59b6','#2ecc71'];
+    for (let i = 0; i < W / 12; i++) {
+        ctx.fillStyle = cols[i % 5];
+        ctx.beginPath();
+        ctx.arc(i * 12 + 6, 28, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    ctx.fillStyle = '#7f8c8d';
+    ctx.fillRect(W/2 - 60, H * 0.66, 120, 15);
+    
+    power = Math.max(-50, Math.min(50, power));
+    document.getElementById('pfill').style.width = (50 + power) + '%';
+    
+    const lift = Math.min(100, pos);
+    const liftY = H * 0.62 - lift * 0.7;
+    const cx = W / 2;
+    
+    // Legs
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(cx - 10, liftY + 30, 8, 25);
+    ctx.fillRect(cx + 2, liftY + 30, 8, 25);
+    
+    // Body
+    ctx.fillStyle = curOutfit.color;
+    ctx.fillRect(cx - 12, liftY, 24, 32);
+    
+    // Belt
+    if (curOutfit.belt) {
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(cx - 13, liftY + 22, 26, 6);
+    }
+    
+    // Head
+    ctx.fillStyle = lift > 60 ? '#e57373' : player.skin;
+    ctx.beginPath();
+    ctx.arc(cx, liftY - 10, 10, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Hair for female
+    if (player.gender === 'female') {
+        ctx.fillStyle = '#4a3728';
+        ctx.beginPath();
+        ctx.arc(cx, liftY - 13, 10, Math.PI, 0);
+        ctx.fill();
+    }
+    
+    // Eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(cx - 4, liftY - 12, 2, lift > 50 ? 2 : 3);
+    ctx.fillRect(cx + 2, liftY - 12, 2, lift > 50 ? 2 : 3);
+    
+    // Arms
+    ctx.fillStyle = player.skin;
+    ctx.fillRect(cx - 22, liftY - 5, 10, 6);
+    ctx.fillRect(cx + 12, liftY - 5, 10, 6);
+    
+    // Barbell
+    const bbY = liftY - 20 - lift * 0.4;
+    const tilt = power * 0.6;
+    
+    ctx.save();
+    ctx.translate(cx, bbY);
+    ctx.rotate(tilt * Math.PI / 180);
+    ctx.fillStyle = '#bdc3c7';
+    ctx.fillRect(-70, -3, 140, 6);
+    ctx.fillStyle = '#e74c3c';
+    ctx.fillRect(-70, -12, 15, 24);
+    ctx.fillRect(55, -12, 15, 24);
+    ctx.fillStyle = '#3498db';
+    ctx.fillRect(-60, -10, 10, 20);
+    ctx.fillRect(50, -10, 10, 20);
+    ctx.restore();
+    
+    const wt = Math.floor(50 + lift * 1.5);
+    ctx.fillStyle = 'white';
+    ctx.font = '14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(wt + ' kg', cx, H * 0.88);
+    
+    ctx.fillStyle = Math.abs(power) > 30 ? '#e74c3c' : '#2ecc71';
+    ctx.font = '9px monospace';
+    ctx.fillText(Math.abs(power) > 30 ? 'UNSTABLE!' : 'BALANCED', cx, 55);
+    ctx.textAlign = 'left';
+    
+    power *= 0.94;
+    
+    if (Math.abs(power) > 45) endGame(wt);
+    if (lift >= 100) endGame(200);
+    if (t > 20) endGame(wt);
+}
+
+function drawRunner(x, y, t, col, skin, isFemale) {
+    const f = Math.floor(t * 10) % 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(x - 6, y + 4, 12, 3);
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(x - 5, y - 2, 5, f ? 10 : 12);
+    ctx.fillRect(x + 1, y - 2, 5, f ? 12 : 10);
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 6, y - 20, 12, 18);
+    ctx.fillStyle = skin;
+    ctx.fillRect(x - 4, y - 28, 8, 8);
+    
+    // Hair for female
+    if (isFemale) {
+        ctx.fillStyle = '#4a3728';
+        ctx.fillRect(x - 4, y - 30, 8, 4);
+        ctx.fillRect(x + 3, y - 28, 5, 8);
+    }
+    
+    // Arms
+    ctx.fillStyle = skin;
+    ctx.fillRect(f ? x - 10 : x - 10, y - 18, 4, 3);
+    ctx.fillRect(f ? x + 6 : x + 6, y - 15, 4, 3);
+}
+
+function drawSwimmer(x, y, t, col, skin, goggles, cap) {
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 16, y - 5, 32, 10);
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(x + 18, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Swim cap
+    if (cap) {
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(x + 18, y - 2, 6, Math.PI, 0);
+        ctx.fill();
+    }
+    
+    // Goggles
+    if (goggles) {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x + 13, y - 1, 12, 4);
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(x + 14, y, 4, 2);
+        ctx.fillRect(x + 20, y, 4, 2);
+    }
+    
+    // Arms animation
+    const f = Math.floor(t * 8) % 2;
+    ctx.fillStyle = skin;
+    ctx.fillRect(x - 20 + (f * 5), y - 8 + (f * 3), 8, 4);
+    ctx.fillRect(x + 12 - (f * 5), y + 4 - (f * 3), 8, 4);
+    
+    // Splash
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(x - 20 - i * 5, y + Math.random() * 8 - 4, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawThrower(x, y, throwing, col, skin, isFemale) {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(x - 8, y + 4, 16, 4);
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(x - 7, y - 2, 6, throwing ? 15 : 12);
+    ctx.fillRect(x + 2, y - 2, 6, throwing ? 18 : 12);
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 8, y - 26, 16, 24);
+    ctx.fillStyle = skin;
+    ctx.fillRect(x - 5, y - 36, 10, 10);
+    
+    // Hair for female
+    if (isFemale) {
+        ctx.fillStyle = '#4a3728';
+        ctx.fillRect(x - 5, y - 38, 10, 4);
+        ctx.fillRect(x + 4, y - 36, 6, 8);
+    }
+    
+    // Arms
+    ctx.fillStyle = skin;
+    if (throwing) {
+        ctx.fillRect(x + 8, y - 30, 12, 5);
+    } else {
+        ctx.fillRect(x - 13, y - 22, 5, 3);
+        ctx.fillRect(x + 8, y - 22, 5, 3);
+    }
+}
+
+// END
+function endGame(score) {
+    running = false;
+    cancelAnimationFrame(anim);
+    
+    const info = GAMES[curGame];
+    const sc = parseFloat(score);
+    
+    if (isMulti) {
+        const p = players[mIdx];
+        mScores.push({ p, sc });
+        saveScore(curGame, p.name, sc);
+        mIdx++;
+        if (mIdx < players.length) {
+            setTimeout(() => {
+                alert(`${p.name}: ${sc}${info.unit}\n\nNext: ${players[mIdx].name}`);
+                initGame();
+            }, 500);
+            return;
+        }
+        showMultiRes();
+        return;
+    }
+    
+    if (isTourn) {
+        tScores[curGame] = sc;
+        saveScore(curGame, player.name, sc);
+        tIdx++;
+        document.getElementById('rIcon').textContent = info.icon;
+        document.getElementById('rTtl').textContent = info.name + ' DONE!';
+        document.getElementById('rScore').textContent = sc + info.unit;
+        document.getElementById('rRanks').innerHTML = '';
+        show('s7');
+        return;
+    }
+    
+    saveScore(curGame, player.name, sc);
+    const scores = getScores(curGame);
+    const rank = scores.findIndex(s => s.s === sc && s.n === player.name) + 1;
+    
+    document.getElementById('rIcon').textContent = rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : '🏁';
+    document.getElementById('rTtl').textContent = rank === 1 ? 'NEW RECORD!' : 'FINISH!';
+    document.getElementById('rScore').textContent = sc + info.unit;
+    document.getElementById('rRanks').innerHTML = scores.slice(0, 5).map((s, i) => `
+        <div class="rank ${i === 0 ? 'gold' : ''}">
+            <span>${['🥇','🥈','🥉','4','5'][i]} ${s.n}</span>
+            <span>${s.s}${info.unit}</span>
+        </div>
+    `).join('');
+    
+    show('s7');
+}
+
+function showMultiRes() {
+    const info = GAMES[curGame];
+    mScores.sort((a, b) => info.low ? a.sc - b.sc : b.sc - a.sc);
+    const w = mScores[0];
+    document.getElementById('rIcon').textContent = '🏆';
+    document.getElementById('rTtl').textContent = w.p.name + ' WINS!';
+    document.getElementById('rScore').textContent = w.sc + info.unit;
+    document.getElementById('rRanks').innerHTML = mScores.map((s, i) => `
+        <div class="rank ${i === 0 ? 'gold' : ''}">
+            <span>${['🥇','🥈','🥉','4'][i]} ${s.p.name}</span>
+            <span>${s.sc}${info.unit}</span>
+        </div>
+    `).join('');
+    show('s7');
+}
+
+function retry() {
+    if (isMulti) { mIdx = 0; mScores = []; }
+    showOutfitScreen(curGame);
+}
+
+function cont() {
+    if (isTourn) { updateTournUI(); show('s5'); }
+    else show('s2');
+}
+
+// LEADERBOARD
+function showLB(g) {
+    document.getElementById('lbTabs').innerHTML = Object.keys(GAMES).map(k => 
+        `<button class="tab ${k === g ? 'on' : ''}" data-game="${k}">${GAMES[k].icon}</button>`
+    ).join('');
+    
+    document.querySelectorAll('#lbTabs .tab').forEach(t => {
+        tap(t, () => showLB(t.dataset.game));
+    });
+    
+    const info = GAMES[g];
+    const scores = getScores(g);
+    document.getElementById('lbList').innerHTML = scores.length === 0 
+        ? `<div style="text-align:center;padding:30px;color:#888;"><div style="font-size:2rem;">📭</div><div style="font-size:0.5rem;margin-top:10px;">NO SCORES YET</div></div>`
+        : scores.map((s, i) => `
+            <div class="lbitem ${i === 0 ? 't1' : i === 1 ? 't2' : i === 2 ? 't3' : ''}">
+                <span style="width:25px">${i < 3 ? ['🥇','🥈','🥉'][i] : (i+1)}</span>
+                <span>👤</span>
+                <span style="flex:1">${s.n}</span>
+                <span style="color:#f1c40f">${s.s}${info.unit}</span>
+            </div>
+        `).join('');
+}
+</script>
+</body>
+</html>
