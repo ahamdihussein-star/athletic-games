@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>🏃 Athletic Games Pro V4 🏆</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Press Start 2P', monospace; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%); min-height: 100vh; color: white; touch-action: manipulation; overflow-x: hidden; }
+        .screen { display: none; min-height: 100vh; padding: 15px; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        .title { font-size: 0.9rem; color: #f1c40f; text-shadow: 3px 3px 0 #e74c3c; text-align: center; margin: 12px 0; }
+        .box { background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%); border: 4px solid #f1c40f; padding: 18px; max-width: 420px; width: 100%; border-radius: 8px; }
+        button, .opt, .color-opt, .outfit-opt { -webkit-appearance: none; cursor: pointer; transition: all 0.1s; user-select: none; -webkit-user-select: none; }
+        .btn { font-family: inherit; font-size: 0.45rem; padding: 11px; background: linear-gradient(180deg, #3498db 0%, #2980b9 100%); color: white; border: 3px solid #5dade2; width: 100%; margin: 4px 0; border-radius: 5px; text-align: center; display: block; }
+        .btn:active { transform: scale(0.98); }
+        .btn.red { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border-color: #ec7063; }
+        .btn.green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-color: #58d68d; }
+        .btn.gold { background: linear-gradient(180deg, #f1c40f 0%, #d4ac0d 100%); border-color: #f4d03f; color: black; }
+        .btn.purple { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); border-color: #bb8fce; }
+        .btn:disabled { opacity: 0.4; }
+        .input { font-family: inherit; font-size: 0.55rem; padding: 10px; background: #0a0a15; color: #f1c40f; border: 3px solid #f1c40f; width: 100%; text-align: center; border-radius: 5px; }
+        .opts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
+        .opt { padding: 7px 10px; background: #1a1a2e; border: 2px solid #555; font-family: inherit; font-size: 0.35rem; color: white; border-radius: 5px; }
+        .opt.sel { border-color: #f1c40f; background: #2a2a4e; box-shadow: 0 0 8px rgba(241,196,15,0.4); }
+        .color-opt { width: 28px; height: 28px; border: 3px solid #555; border-radius: 50%; }
+        .color-opt.sel { border-color: #f1c40f; transform: scale(1.1); }
+        .outfit-opt { width: 58px; height: 65px; background: #0a0a15; border: 3px solid #555; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.3rem; border-radius: 6px; }
+        .outfit-opt .icon { font-size: 1.4rem; margin-bottom: 3px; }
+        .outfit-opt.sel { border-color: #f1c40f; background: #1a1a3e; }
+        .games { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 320px; margin-top: 12px; }
+        .game-card { background: #1a1a2e; border: 3px solid #555; padding: 12px 8px; text-align: center; border-radius: 8px; cursor: pointer; }
+        .game-card:active { border-color: #f1c40f; }
+        .game-card .icon { font-size: 1.6rem; }
+        .game-card .name { font-size: 0.35rem; color: #f1c40f; margin-top: 6px; }
+        #gameArea { width: 100%; max-width: 550px; }
+        .hud { display: flex; justify-content: space-between; background: #1a1a2e; border: 3px solid #f1c40f; padding: 6px 10px; font-size: 0.38rem; margin-bottom: 4px; border-radius: 5px; }
+        .hud .time { color: #2ecc71; font-size: 0.7rem; }
+        #canvas { width: 100%; height: 260px; border: 4px solid #f1c40f; background: #1a1a2e; display: block; border-radius: 8px; }
+        .ctrls { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+        .ctrl { font-family: inherit; font-size: 1.2rem; width: 68px; height: 68px; background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); color: white; border: 4px solid #ec7063; border-radius: 10px; box-shadow: 0 4px 0 #922b21; }
+        .ctrl:active { transform: translateY(4px); box-shadow: none; }
+        .ctrl.blue { background: linear-gradient(180deg, #3498db 0%, #2980b9 100%); border-color: #5dade2; box-shadow: 0 4px 0 #1a5276; }
+        .ctrl.green { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); border-color: #58d68d; box-shadow: 0 4px 0 #1e8449; }
+        .ctrl.gold { background: linear-gradient(180deg, #f1c40f 0%, #d4ac0d 100%); border-color: #f4d03f; box-shadow: 0 4px 0 #9a7b0a; color: #000; }
+        .ctrl.small { width: 55px; height: 55px; font-size: 0.9rem; }
+        .info { font-size: 0.38rem; color: #888; text-align: center; margin: 6px 0; }
+        .result { text-align: center; padding: 18px; }
+        .result .icon { font-size: 3rem; margin-bottom: 12px; }
+        .result .ttl { font-size: 0.7rem; color: #f1c40f; margin-bottom: 6px; }
+        .result .score { font-size: 1rem; color: #2ecc71; margin-bottom: 12px; }
+        .rank { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; margin: 3px 0; background: #0a0a15; border: 2px solid #555; font-size: 0.38rem; border-radius: 5px; }
+        .rank.gold { border-color: #f1c40f; background: linear-gradient(90deg, rgba(241,196,15,0.15), transparent); }
+        .rank.you { border-color: #3498db; background: linear-gradient(90deg, rgba(52,152,219,0.15), transparent); }
+        .back { position: absolute; top: 10px; left: 10px; font-family: inherit; font-size: 0.38rem; padding: 5px 8px; background: #333; color: white; border: 2px solid #555; border-radius: 5px; cursor: pointer; }
+        .cd { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 100; flex-direction: column; }
+        .cd.on { display: flex; }
+        .cd .num { font-size: 4.5rem; color: #f1c40f; text-shadow: 0 0 30px rgba(241,196,15,0.5); }
+        .cd .txt { font-size: 0.55rem; color: #fff; margin-top: 12px; }
+        .room-code { font-size: 1.1rem; color: #f1c40f; background: #0a0a15; padding: 10px 22px; border: 3px solid #f1c40f; border-radius: 8px; letter-spacing: 5px; margin: 12px 0; }
+        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #1a1a2e; border: 2px solid #555; margin: 4px 0; border-radius: 5px; font-size: 0.4rem; }
+        .player-item.host { border-color: #f1c40f; }
+        .player-item .badge { background: #f1c40f; color: black; padding: 2px 5px; border-radius: 3px; font-size: 0.3rem; }
+        .stitle { font-size: 0.42rem; color: #f1c40f; margin: 10px 0 6px; text-align: center; }
+        .live { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.85); padding: 6px; border-radius: 5px; font-size: 0.3rem; border: 1px solid #333; }
+        .live div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+        .live .you { color: #3498db; font-weight: bold; }
+        .preview-box { width: 90px; height: 90px; background: #0a0a15; border: 3px solid #f1c40f; border-radius: 8px; margin: 8px auto; }
+        .slot { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; margin: 4px 0; background: #1a1a2e; border: 2px solid #555; font-size: 0.4rem; border-radius: 5px; }
+        .slot.empty { border-style: dashed; opacity: 0.5; }
+        .slot .xbtn { background: #e74c3c; border: none; color: white; padding: 3px 7px; font-family: inherit; font-size: 0.35rem; border-radius: 3px; cursor: pointer; }
+        .health-bar { width: 100%; height: 15px; background: #333; border: 2px solid #fff; border-radius: 3px; overflow: hidden; margin: 5px 0; }
+        .health-fill { height: 100%; background: linear-gradient(90deg, #e74c3c, #f1c40f, #2ecc71); transition: width 0.2s; }
+        .combo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: #f1c40f; text-shadow: 2px 2px 0 #e74c3c; opacity: 0; transition: opacity 0.3s; }
+        .combo.show { opacity: 1; }
+    </style>
+</head>
+<body>
+<div class="cd" id="cdBox"><div class="num" id="cdNum">3</div><div class="txt" id="cdTxt">GET READY!</div></div>
+
+<!-- REGISTER -->
+<div class="screen active" id="s1">
+    <h1 class="title">🏃 ATHLETIC<br>GAMES PRO 🏆</h1>
+    <div class="box">
+        <p class="stitle">PLAYER NAME</p>
+        <input class="input" id="inpName" placeholder="YOUR NAME" maxlength="10">
+        <p class="stitle">GENDER</p>
+        <div class="opts" id="genderOpts"></div>
+        <p class="stitle">SKIN COLOR</p>
+        <div class="opts" id="skinColors"></div>
+        <button class="btn gold" id="btnReg" style="margin-top:12px;">▶ START GAME</button>
+    </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="s2">
+    <h1 class="title">🏃 ATHLETIC<br>GAMES PRO 🏆</h1>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+        <canvas id="menuAv" width="50" height="50" style="border:3px solid #f1c40f;border-radius:8px;"></canvas>
+        <div><div id="mName" style="color:#f1c40f;font-size:0.55rem;">PLAYER</div><div style="color:#666;font-size:0.3rem;margin-top:3px;">READY TO COMPETE</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:250px;">
+        <button class="btn red" id="btnQuick">🎮 QUICK PLAY</button>
+        <button class="btn gold" id="btnLocal">👥 LOCAL MULTIPLAYER</button>
+        <button class="btn purple" id="btnOnline">🌐 ONLINE PLAY</button>
+        <button class="btn green" id="btnTourn">🏆 TOURNAMENT</button>
+        <button class="btn" id="btnLB">📊 RECORDS</button>
+    </div>
+</div>
+
+<!-- SELECT GAME -->
+<div class="screen" id="s3">
+    <button class="back" id="backS3">← BACK</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;">SELECT EVENT</p>
+    <div class="games" id="gamesList"></div>
+</div>
+
+<!-- LOCAL MULTIPLAYER -->
+<div class="screen" id="sLocal">
+    <button class="back" id="backLocal">← BACK</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;">LOCAL MULTIPLAYER</p>
+    <div class="box" style="margin-top:12px;">
+        <p class="stitle">PLAYERS (2-4)</p>
+        <div id="localSlots"></div>
+        <div id="addLocalDiv" style="display:flex;gap:6px;margin-top:8px;">
+            <input class="input" id="inpLocalName" placeholder="NAME" maxlength="10" style="flex:1;">
+            <button class="btn green" id="btnAddLocal" style="width:45px;margin:0;">+</button>
+        </div>
+        <button class="btn gold" id="btnStartLocal" disabled style="margin-top:12px;">▶ SELECT GAME</button>
+    </div>
+</div>
+
+<!-- OUTFIT SELECTION -->
+<div class="screen" id="sOutfit">
+    <button class="back" id="backOutfit">← BACK</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;" id="outfitTitle">OPTIONS</p>
+    <div class="box" style="margin-top:10px;text-align:center;max-height:80vh;overflow-y:auto;">
+        <canvas class="preview-box" id="outfitPreview" width="90" height="90"></canvas>
+        
+        <div id="distSection">
+            <p class="stitle">DISTANCE</p>
+            <div class="opts" id="distOpts"></div>
+        </div>
+        
+        <div id="swimStyleSection" style="display:none;">
+            <p class="stitle">SWIM STYLE</p>
+            <div class="opts" id="swimStyleOpts"></div>
+        </div>
+        
+        <p class="stitle">DIFFICULTY</p>
+        <div class="opts" id="diffOpts"></div>
+        
+        <div id="outfitStyleSection">
+            <p class="stitle">OUTFIT</p>
+            <div class="opts" id="styleOpts"></div>
+        </div>
+        
+        <div id="accessorySection" style="display:none;">
+            <p class="stitle">ACCESSORIES</p>
+            <div class="opts" id="accOpts"></div>
+        </div>
+        
+        <p class="stitle">COLOR</p>
+        <div class="opts" id="outfitColors"></div>
+        
+        <button class="btn gold" id="btnStartRace" style="margin-top:12px;">▶ START</button>
+    </div>
+</div>
+
+<!-- ONLINE LOBBY -->
+<div class="screen" id="sOnline">
+    <button class="back" id="backOnline">← BACK</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;">🌐 ONLINE PLAY</p>
+    <div class="box" style="margin-top:12px;text-align:center;">
+        <button class="btn green" id="btnHost">🏠 CREATE ROOM</button>
+        <p style="color:#666;font-size:0.32rem;margin:12px 0;">- OR -</p>
+        <input class="input" id="inpRoom" placeholder="ROOM CODE" maxlength="6" style="text-transform:uppercase;">
+        <button class="btn purple" id="btnJoin" style="margin-top:6px;">🚪 JOIN ROOM</button>
+    </div>
+    <p id="onlineStatus" style="color:#888;font-size:0.35rem;margin-top:10px;"></p>
+</div>
+
+<!-- ONLINE ROOM -->
+<div class="screen" id="sRoom">
+    <button class="back" id="backRoom">← LEAVE</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;">GAME ROOM</p>
+    <div class="room-code" id="roomCode">XXXX</div>
+    <p style="font-size:0.3rem;color:#888;margin-bottom:10px;">Share code with friends!</p>
+    <div id="roomPlayers" style="width:100%;max-width:280px;"></div>
+    <div id="hostCtrl" style="display:none;width:100%;max-width:280px;margin-top:12px;">
+        <p class="stitle">GAME</p>
+        <div class="opts" id="roomGameOpts"></div>
+        <p class="stitle">DISTANCE</p>
+        <div class="opts" id="roomDistOpts"></div>
+        <button class="btn gold" id="btnStartOnline" style="margin-top:8px;">▶ START RACE</button>
+    </div>
+    <p id="guestWait" style="display:none;color:#888;font-size:0.38rem;margin-top:15px;">⏳ Waiting for host...</p>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="s6">
+    <div id="gameArea">
+        <div class="hud">
+            <span id="hEvent">100M</span>
+            <span id="hDist" style="color:#f1c40f;">0/100m</span>
+            <span class="time" id="hTime">00:00.00</span>
+        </div>
+        <div id="healthBars" style="display:none;margin-bottom:5px;"></div>
+        <div style="position:relative;">
+            <canvas id="canvas" width="550" height="260"></canvas>
+            <div class="live" id="livePos"></div>
+            <div class="combo" id="combo">COMBO!</div>
+        </div>
+        <p class="info" id="hInfo">TAP BUTTONS!</p>
+        <div class="ctrls" id="ctrls"></div>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s7">
+    <div class="box result">
+        <div class="icon" id="rIcon">🏆</div>
+        <div class="ttl" id="rTtl">FINISH!</div>
+        <div class="score" id="rScore">9.85s</div>
+        <div id="rRanks"></div>
+        <div style="display:flex;gap:6px;margin-top:12px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn red" id="btnRetry">🔄 RETRY</button>
+            <button class="btn" id="btnCont">MENU</button>
+        </div>
+    </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="s8">
+    <button class="back" id="backS8">← BACK</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;">📊 RECORDS</p>
+    <div class="opts" id="lbGame" style="margin:8px 0;"></div>
+    <div class="opts" id="lbDist" style="margin:8px 0;"></div>
+    <div id="lbList" style="width:100%;max-width:340px;"></div>
+</div>
+
+<!-- TOURNAMENT -->
+<div class="screen" id="s5">
+    <button class="back" id="backS5">← EXIT</button>
+    <p style="font-size:0.65rem;color:#f1c40f;margin-top:35px;">🏆 TOURNAMENT</p>
+    <div class="box" style="margin-top:12px;text-align:center;">
+        <p style="font-size:0.3rem;color:#666;margin-bottom:8px;">Complete all events!</p>
+        <div id="tList"></div>
+        <div id="tTotal" style="margin-top:8px;padding-top:8px;border-top:2px solid #f1c40f;font-size:0.45rem;"></div>
+    </div>
+    <button class="btn gold" id="btnNextE" style="margin-top:10px;max-width:250px;">▶ NEXT</button>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const DISTS = [
+    { m: 50, name: '50M' },
+    { m: 100, name: '100M' },
+    { m: 200, name: '200M' },
+    { m: 400, name: '400M' },
+    { m: 800, name: '800M' },
+    { m: 1500, name: '1500M' }
+];
+
+const DIFFS = [
+    { id: 'easy', name: 'EASY', mult: 0.65, color: '#2ecc71' },
+    { id: 'medium', name: 'MEDIUM', mult: 0.78, color: '#f1c40f' },
+    { id: 'hard', name: 'HARD', mult: 0.88, color: '#e74c3c' }
+];
+
+const SWIM_STYLES = [
+    { id: 'freestyle', name: 'FREESTYLE', icon: '🏊' },
+    { id: 'backstroke', name: 'BACKSTROKE', icon: '🔙' },
+    { id: 'butterfly', name: 'BUTTERFLY', icon: '🦋' },
+    { id: 'breaststroke', name: 'BREASTSTROKE', icon: '🐸' }
+];
+
+const GAMES = {
+    sprint: { name: 'SPRINT', icon: '🏃', type: 'race' },
+    swim: { name: 'SWIMMING', icon: '🏊', type: 'swim' },
+    hurdles: { name: 'HURDLES', icon: '🚧', type: 'hurdles' },
+    kungfu: { name: 'KUNG FU', icon: '🥋', type: 'fight' }
+};
+
+const OUTFITS = {
+    sprint: {
+        styles: [
+            { id: 'tank', name: 'TANK', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' },
+            { id: 'jersey', name: 'JERSEY', icon: '🦺' }
+        ]
+    },
+    swim: {
+        styles: [
+            { id: 'speedo', name: 'SPEEDO', icon: '🩲' },
+            { id: 'swimsuit', name: 'SWIMSUIT', icon: '👙' },
+            { id: 'fullsuit', name: 'FULL', icon: '🏊' }
+        ],
+        accessories: [
+            { id: 'goggles', name: 'GOGGLES', icon: '🥽', default: true },
+            { id: 'cap', name: 'CAP', icon: '🎓', default: true }
+        ]
+    },
+    hurdles: {
+        styles: [
+            { id: 'tank', name: 'TANK', icon: '🎽' },
+            { id: 'tshirt', name: 'T-SHIRT', icon: '👕' }
+        ]
+    },
+    kungfu: {
+        styles: [
+            { id: 'gi', name: 'GI', icon: '🥋' },
+            { id: 'tank', name: 'TANK', icon: '🎽' },
+            { id: 'robe', name: 'ROBE', icon: '👘' }
+        ],
+        accessories: [
+            { id: 'headband', name: 'HEADBAND', icon: '🎀', default: true },
+            { id: 'gloves', name: 'GLOVES', icon: '🥊', default: false }
+        ]
+    }
+};
+
+const SKINS = ['#FFDFC4', '#F0C08A', '#D99B6C', '#BB7744', '#8B5A2B', '#5C3317'];
+const OUTFIT_COLORS = ['#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c', '#e91e63', '#fff', '#000'];
+
+const TOURNAMENT = [
+    { game: 'sprint', dist: 100 },
+    { game: 'swim', dist: 100 },
+    { game: 'hurdles', dist: 100 },
+    { game: 'kungfu', dist: 0 },
+    { game: 'sprint', dist: 200 },
+    { game: 'swim', dist: 200 }
+];
+
+// Realistic speeds (m/s) - reduced for fairness
+const SPEEDS = {
+    sprint: { 50: 8.5, 100: 8.5, 200: 8.3, 400: 7.8, 800: 6.8, 1500: 6.0 },
+    swim: { 50: 1.9, 100: 1.8, 200: 1.7, 400: 1.6, 800: 1.55, 1500: 1.5 },
+    hurdles: { 50: 7.5, 100: 7.8, 200: 7.5, 400: 7.0, 800: 6.5, 1500: 5.8 }
+};
+
+// ==================== STATE ====================
+let player = { name: 'PLAYER', gender: 'male', skin: '#FFDFC4', outfit: '#3498db', style: 'tank', goggles: true, cap: true, headband: true, gloves: false };
+let localPlayers = [];
+let curGame = 'sprint';
+let curDist = 100;
+let curDiff = 'medium';
+let curSwimStyle = 'freestyle';
+let isTourn = false, tIdx = 0, tScores = {};
+let isLocal = false, localIdx = 0, localScores = [];
+let isOnline = false, isHost = false, peer = null, conns = [], roomCode = '';
+let onlinePlayers = [];
+let onlinePositions = {};
+
+let canvas, ctx, W = 550, H = 260;
+let running = false, startT = 0;
+let playerPos = 0, playerSpeed = 0, lastK = 'R', jumpY = 0;
+let cpus = [], hurdleList = [], anim;
+
+// Kung Fu state
+let playerHealth = 100, enemyHealth = 100;
+let playerCombo = 0, lastMove = '', comboTimer = 0;
+let enemyState = 'idle', enemyTimer = 0;
+let fightTime = 60;
+
+// ==================== STORAGE ====================
+const save = (k, v) => localStorage.setItem('agp_' + k, JSON.stringify(v));
+const load = k => { try { return JSON.parse(localStorage.getItem('agp_' + k)); } catch { return null; } };
+function saveScore(game, dist, name, score) {
+    const key = `sc_${game}_${dist}`;
+    let arr = load(key) || [];
+    arr.push({ n: name, t: score, d: Date.now() });
+    if (game === 'kungfu') arr.sort((a, b) => b.t - a.t);
+    else arr.sort((a, b) => a.t - b.t);
+    save(key, arr.slice(0, 30));
+}
+
+// ==================== HELPERS ====================
+function tap(el, fn) {
+    if (!el) return;
+    let moved = false;
+    el.addEventListener('touchstart', () => moved = false, { passive: true });
+    el.addEventListener('touchmove', () => moved = true, { passive: true });
+    el.addEventListener('touchend', e => { if (!moved) { e.preventDefault(); fn(e); } }, { passive: false });
+    el.addEventListener('click', e => { e.preventDefault(); fn(e); });
+}
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+    // Gender
+    const gDiv = document.getElementById('genderOpts');
+    [['male', '👨 MALE'], ['female', '👩 FEMALE']].forEach(([g, txt], i) => {
+        const d = document.createElement('div');
+        d.className = 'opt' + (i === 0 ? ' sel' : '');
+        d.textContent = txt;
+        tap(d, () => { document.querySelectorAll('#genderOpts .opt').forEach(x => x.classList.remove('sel')); d.classList.add('sel'); player.gender = g; });
+        gDiv.appendChild(d);
+    });
+    
+    // Skin
+    const sDiv = document.getElementById('skinColors');
+    SKINS.forEach((c, i) => {
+        const d = document.createElement('div');
+        d.className = 'color-opt' + (i === 0 ? ' sel' : '');
+        d.style.background = c;
+        tap(d, () => { document.querySelectorAll('#skinColors .color-opt').forEach(x => x.classList.remove('sel')); d.classList.add('sel'); player.skin = c; });
+        sDiv.appendChild(d);
+    });
+    
+    // Games
+    const gameDiv = document.getElementById('gamesList');
+    Object.entries(GAMES).forEach(([k, v]) => {
+        const d = document.createElement('div');
+        d.className = 'game-card';
+        d.innerHTML = `<div class="icon">${v.icon}</div><div class="name">${v.name}</div>`;
+        tap(d, () => showOutfitScreen(k));
+        gameDiv.appendChild(d);
+    });
+    
+    // Buttons
+    tap(document.getElementById('btnReg'), register);
+    tap(document.getElementById('btnQuick'), () => { isLocal = false; show('s3'); });
+    tap(document.getElementById('btnLocal'), () => { initLocalMulti(); show('sLocal'); });
+    tap(document.getElementById('btnOnline'), () => show('sOnline'));
+    tap(document.getElementById('btnTourn'), startTournament);
+    tap(document.getElementById('btnLB'), () => { showLeaderboard('sprint', 100); show('s8'); });
+    
+    tap(document.getElementById('backS3'), () => show('s2'));
+    tap(document.getElementById('backLocal'), () => show('s2'));
+    tap(document.getElementById('backOutfit'), () => show(isLocal ? 'sLocal' : 's3'));
+    tap(document.getElementById('backOnline'), () => show('s2'));
+    tap(document.getElementById('backRoom'), leaveRoom);
+    tap(document.getElementById('backS5'), () => { isTourn = false; show('s2'); });
+    tap(document.getElementById('backS8'), () => show('s2'));
+    
+    tap(document.getElementById('btnAddLocal'), addLocalPlayer);
+    tap(document.getElementById('btnStartLocal'), () => { isLocal = true; show('s3'); });
+    tap(document.getElementById('btnStartRace'), startGame);
+    tap(document.getElementById('btnRetry'), retry);
+    tap(document.getElementById('btnCont'), () => { isLocal = false; show('s2'); });
+    tap(document.getElementById('btnNextE'), nextTournEvent);
+    
+    tap(document.getElementById('btnHost'), createRoom);
+    tap(document.getElementById('btnJoin'), joinRoom);
+    tap(document.getElementById('btnStartOnline'), startOnlineGame);
+});
+
+function register() {
+    player.name = document.getElementById('inpName').value.trim().toUpperCase() || 'PLAYER';
+    localPlayers = [{ ...player }];
+    document.getElementById('mName').textContent = player.name;
+    drawMenuAvatar();
+    show('s2');
+}
+
+function drawMenuAvatar() {
+    const c = document.getElementById('menuAv');
+    const x = c.getContext('2d');
+    x.fillStyle = '#0a0a15';
+    x.fillRect(0, 0, 50, 50);
+    drawRunner(x, 25, 35, player.skin, player.outfit, player.gender === 'female', 1, 0);
+}
+
+// ==================== LOCAL MULTIPLAYER ====================
+function initLocalMulti() {
+    localPlayers = [{ ...player }];
+    updateLocalSlots();
+}
+
+function updateLocalSlots() {
+    const div = document.getElementById('localSlots');
+    div.innerHTML = '';
+    localPlayers.forEach((p, i) => {
+        const s = document.createElement('div');
+        s.className = 'slot';
+        s.innerHTML = `<span style="color:${p.outfit}">● ${p.name}</span>` + 
+            (i === 0 ? '<span style="color:#f1c40f;font-size:0.3rem;">YOU</span>' : `<button class="xbtn" data-idx="${i}">✕</button>`);
+        div.appendChild(s);
+    });
+    div.querySelectorAll('.xbtn').forEach(btn => {
+        tap(btn, () => { localPlayers.splice(parseInt(btn.dataset.idx), 1); updateLocalSlots(); });
+    });
+    for (let i = localPlayers.length; i < 4; i++) {
+        const s = document.createElement('div');
+        s.className = 'slot empty';
+        s.textContent = 'EMPTY';
+        div.appendChild(s);
+    }
+    document.getElementById('addLocalDiv').style.display = localPlayers.length < 4 ? 'flex' : 'none';
+    document.getElementById('btnStartLocal').disabled = localPlayers.length < 2;
+}
+
+function addLocalPlayer() {
+    if (localPlayers.length >= 4) return;
+    const name = document.getElementById('inpLocalName').value.trim().toUpperCase();
+    if (!name) return;
+    const colors = OUTFIT_COLORS.filter(c => !localPlayers.some(p => p.outfit === c));
+    localPlayers.push({ name, gender: Math.random() > 0.5 ? 'male' : 'female', skin: SKINS[localPlayers.length % SKINS.length], outfit: colors[0] || OUTFIT_COLORS[localPlayers.length], style: 'tank', goggles: true, cap: true, headband: true, gloves: false });
+    document.getElementById('inpLocalName').value = '';
+    updateLocalSlots();
+}
+
+// ==================== OUTFIT SCREEN ====================
+function showOutfitScreen(game) {
+    curGame = game;
+    const info = GAMES[game];
+    const outfitInfo = OUTFITS[game];
+    
+    document.getElementById('outfitTitle').textContent = info.name + ' - OPTIONS';
+    
+    // Distance section (hide for kungfu)
+    const distSection = document.getElementById('distSection');
+    if (game === 'kungfu') {
+        distSection.style.display = 'none';
+    } else {
+        distSection.style.display = 'block';
+        const distDiv = document.getElementById('distOpts');
+        distDiv.innerHTML = '';
+        DISTS.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'opt' + (d.m === 100 ? ' sel' : '');
+            el.textContent = d.name;
+            tap(el, () => { document.querySelectorAll('#distOpts .opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); curDist = d.m; });
+            distDiv.appendChild(el);
+        });
+        curDist = 100;
+    }
+    
+    // Swim style section
+    const swimSection = document.getElementById('swimStyleSection');
+    if (game === 'swim') {
+        swimSection.style.display = 'block';
+        const swimDiv = document.getElementById('swimStyleOpts');
+        swimDiv.innerHTML = '';
+        SWIM_STYLES.forEach((s, i) => {
+            const el = document.createElement('div');
+            el.className = 'opt' + (i === 0 ? ' sel' : '');
+            el.textContent = s.icon + ' ' + s.name;
+            tap(el, () => { document.querySelectorAll('#swimStyleOpts .opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); curSwimStyle = s.id; drawOutfitPreview(); });
+            swimDiv.appendChild(el);
+        });
+        curSwimStyle = 'freestyle';
+    } else {
+        swimSection.style.display = 'none';
+    }
+    
+    // Difficulty
+    const diffDiv = document.getElementById('diffOpts');
+    diffDiv.innerHTML = '';
+    DIFFS.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'opt' + (d.id === 'medium' ? ' sel' : '');
+        el.textContent = d.name;
+        el.style.color = d.color;
+        tap(el, () => { document.querySelectorAll('#diffOpts .opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); curDiff = d.id; });
+        diffDiv.appendChild(el);
+    });
+    curDiff = 'medium';
+    
+    // Outfit styles
+    const styleDiv = document.getElementById('styleOpts');
+    styleDiv.innerHTML = '';
+    outfitInfo.styles.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.className = 'outfit-opt' + (i === 0 ? ' sel' : '');
+        el.innerHTML = `<div class="icon">${s.icon}</div><div>${s.name}</div>`;
+        tap(el, () => { document.querySelectorAll('#styleOpts .outfit-opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); player.style = s.id; drawOutfitPreview(); });
+        styleDiv.appendChild(el);
+    });
+    player.style = outfitInfo.styles[0].id;
+    
+    // Accessories
+    const accSection = document.getElementById('accessorySection');
+    const accDiv = document.getElementById('accOpts');
+    if (outfitInfo.accessories) {
+        accSection.style.display = 'block';
+        accDiv.innerHTML = '';
+        outfitInfo.accessories.forEach(a => {
+            const el = document.createElement('div');
+            el.className = 'outfit-opt' + (a.default ? ' sel' : '');
+            el.innerHTML = `<div class="icon">${a.icon}</div><div>${a.name}</div>`;
+            tap(el, () => { el.classList.toggle('sel'); player[a.id] = el.classList.contains('sel'); drawOutfitPreview(); });
+            accDiv.appendChild(el);
+            player[a.id] = a.default;
+        });
+    } else {
+        accSection.style.display = 'none';
+    }
+    
+    // Colors
+    const colorDiv = document.getElementById('outfitColors');
+    colorDiv.innerHTML = '';
+    OUTFIT_COLORS.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'color-opt' + (c === player.outfit ? ' sel' : '');
+        el.style.background = c;
+        tap(el, () => { document.querySelectorAll('#outfitColors .color-opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); player.outfit = c; drawOutfitPreview(); });
+        colorDiv.appendChild(el);
+    });
+    
+    show('sOutfit');
+    setTimeout(drawOutfitPreview, 50);
+}
+
+function drawOutfitPreview() {
+    const c = document.getElementById('outfitPreview');
+    const x = c.getContext('2d');
+    x.fillStyle = '#0a0a15';
+    x.fillRect(0, 0, 90, 90);
+    
+    if (curGame === 'swim') {
+        drawSwimmer(x, 45, 50, player.skin, player.outfit, player.goggles, player.cap, curSwimStyle, 0, 1.1);
+    } else if (curGame === 'kungfu') {
+        drawFighter(x, 45, 60, player.skin, player.outfit, player.gender === 'female', player.headband, 'idle', 1.3);
+    } else {
+        drawRunner(x, 45, 60, player.skin, player.outfit, player.gender === 'female', 1.3, 0);
+    }
+}
+
+// ==================== ONLINE ====================
+function generateCode() { return Math.random().toString(36).substring(2, 6).toUpperCase(); }
+
+function createRoom() {
+    roomCode = generateCode();
+    document.getElementById('onlineStatus').textContent = 'Creating room...';
+    
+    peer = new Peer('ath-' + roomCode);
+    peer.on('open', () => {
+        isHost = true;
+        isOnline = true;
+        onlinePlayers = [{ id: peer.id, name: player.name, skin: player.skin, outfit: player.outfit, ready: true, pos: 0 }];
+        document.getElementById('roomCode').textContent = roomCode;
+        updateRoomUI();
+        show('sRoom');
+    });
+    peer.on('connection', conn => {
+        conn.on('data', data => handleOnlineData(conn, data));
+        conn.on('close', () => { onlinePlayers = onlinePlayers.filter(p => p.id !== conn.peer); conns = conns.filter(c => c.peer !== conn.peer); broadcastPlayers(); updateRoomUI(); });
+        conns.push(conn);
+    });
+    peer.on('error', err => { document.getElementById('onlineStatus').textContent = 'Error: ' + err.type; });
+}
+
+function joinRoom() {
+    roomCode = document.getElementById('inpRoom').value.trim().toUpperCase();
+    if (roomCode.length < 4) { document.getElementById('onlineStatus').textContent = 'Enter valid code'; return; }
+    
+    document.getElementById('onlineStatus').textContent = 'Connecting...';
+    peer = new Peer();
+    peer.on('open', () => {
+        const conn = peer.connect('ath-' + roomCode);
+        conn.on('open', () => {
+            isHost = false;
+            isOnline = true;
+            conns = [conn];
+            conn.send({ type: 'join', id: peer.id, name: player.name, skin: player.skin, outfit: player.outfit });
+        });
+        conn.on('data', data => handleOnlineData(conn, data));
+        conn.on('error', () => { document.getElementById('onlineStatus').textContent = 'Room not found'; });
+    });
+}
+
+function handleOnlineData(conn, data) {
+    if (data.type === 'join') {
+        onlinePlayers.push({ id: data.id, name: data.name, skin: data.skin, outfit: data.outfit, ready: true, pos: 0 });
+        broadcastPlayers();
+        updateRoomUI();
+    } else if (data.type === 'players') {
+        onlinePlayers = data.players;
+        updateRoomUI();
+        if (!document.getElementById('sRoom').classList.contains('active')) show('sRoom');
+    } else if (data.type === 'start') {
+        curGame = data.game;
+        curDist = data.dist;
+        curDiff = 'medium';
+        startGame();
+    } else if (data.type === 'pos') {
+        onlinePositions[data.id] = data.pos;
+    } else if (data.type === 'finish') {
+        // Handle finish from other players
+    }
+}
+
+function broadcastPlayers() {
+    const msg = { type: 'players', players: onlinePlayers };
+    conns.forEach(c => { try { c.send(msg); } catch(e) {} });
+}
+
+function broadcastPos(pos) {
+    const msg = { type: 'pos', id: peer.id, pos };
+    conns.forEach(c => { try { c.send(msg); } catch(e) {} });
+}
+
+function updateRoomUI() {
+    document.getElementById('roomCode').textContent = roomCode;
+    const pList = document.getElementById('roomPlayers');
+    pList.innerHTML = '';
+    onlinePlayers.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'player-item' + (i === 0 ? ' host' : '');
+        div.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="color:${p.outfit};font-size:1rem;">●</span><span>${p.name}</span>${i === 0 ? '<span class="badge">HOST</span>' : ''}</div><span style="color:#2ecc71;">✓</span>`;
+        pList.appendChild(div);
+    });
+    
+    document.getElementById('hostCtrl').style.display = isHost ? 'block' : 'none';
+    document.getElementById('guestWait').style.display = isHost ? 'none' : 'block';
+    
+    if (isHost) {
+        const gameDiv = document.getElementById('roomGameOpts');
+        gameDiv.innerHTML = '';
+        Object.entries(GAMES).forEach(([k, v], i) => {
+            const el = document.createElement('div');
+            el.className = 'opt' + (i === 0 ? ' sel' : '');
+            el.textContent = v.icon;
+            el.dataset.game = k;
+            tap(el, () => { document.querySelectorAll('#roomGameOpts .opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); curGame = k; });
+            gameDiv.appendChild(el);
+        });
+        
+        const distDiv = document.getElementById('roomDistOpts');
+        distDiv.innerHTML = '';
+        DISTS.slice(0, 4).forEach((d, i) => {
+            const el = document.createElement('div');
+            el.className = 'opt' + (d.m === 100 ? ' sel' : '');
+            el.textContent = d.name;
+            tap(el, () => { document.querySelectorAll('#roomDistOpts .opt').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); curDist = d.m; });
+            distDiv.appendChild(el);
+        });
+    }
+}
+
+function leaveRoom() {
+    if (peer) peer.destroy();
+    peer = null; conns = []; isOnline = false; isHost = false;
+    show('s2');
+}
+
+function startOnlineGame() {
+    const msg = { type: 'start', game: curGame, dist: curDist };
+    conns.forEach(c => { try { c.send(msg); } catch(e) {} });
+    startGame();
+}
+
+// ==================== TOURNAMENT ====================
+function startTournament() {
+    isTourn = true; isLocal = false; tIdx = 0; tScores = {};
+    updateTournamentUI();
+    show('s5');
+}
+
+function updateTournamentUI() {
+    let total = 0;
+    document.getElementById('tList').innerHTML = TOURNAMENT.map((e, i) => {
+        const info = GAMES[e.game];
+        const sc = tScores[i];
+        const done = i < tIdx, cur = i === tIdx;
+        if (sc !== undefined) total += sc;
+        const scoreText = e.game === 'kungfu' ? (sc !== undefined ? sc + ' pts' : '-') : (sc !== undefined ? sc.toFixed(2) + 's' : '-');
+        return `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #333;color:${done ? '#2ecc71' : cur ? '#f1c40f' : '#555'}"><span>${done ? '✓ ' : cur ? '→ ' : ''}${info.icon} ${e.dist ? e.dist + 'M ' : ''}${info.name}</span><span style="color:#f1c40f">${scoreText}</span></div>`;
+    }).join('');
+    document.getElementById('tTotal').innerHTML = tIdx > 0 ? `SCORE: <span style="color:#2ecc71">${total.toFixed(e => e.game === 'kungfu' ? 0 : 2)}</span>` : '';
+    document.getElementById('btnNextE').textContent = tIdx >= TOURNAMENT.length ? '🏆 RESULTS' : '▶ NEXT';
+}
+
+function nextTournEvent() {
+    if (tIdx >= TOURNAMENT.length) { showTournamentResults(); return; }
+    const ev = TOURNAMENT[tIdx];
+    curGame = ev.game;
+    curDist = ev.dist || 100;
+    curDiff = 'medium';
+    showOutfitScreen(curGame);
+}
+
+function showTournamentResults() {
+    let total = Object.values(tScores).reduce((a, b) => a + b, 0);
+    document.getElementById('rIcon').textContent = '🏆';
+    document.getElementById('rTtl').textContent = 'TOURNAMENT!';
+    document.getElementById('rScore').textContent = total.toFixed(0) + ' PTS';
+    document.getElementById('rRanks').innerHTML = TOURNAMENT.map((e, i) => {
+        const info = GAMES[e.game];
+        const sc = tScores[i];
+        return `<div class="rank"><span>${info.icon} ${e.dist ? e.dist + 'M' : ''}</span><span>${sc !== undefined ? (e.game === 'kungfu' ? sc + 'pts' : sc.toFixed(2) + 's') : '-'}</span></div>`;
+    }).join('');
+    isTourn = false;
+    show('s7');
+}
+
+// ==================== START GAME ====================
+function startGame() {
+    if (curGame === 'kungfu') {
+        startKungFu();
+    } else {
+        startRace();
+    }
+}
+
+function startRace() {
+    const info = GAMES[curGame];
+    document.getElementById('hEvent').textContent = curDist + 'M ' + info.name + (curGame === 'swim' ? ' (' + curSwimStyle.toUpperCase() + ')' : '');
+    document.getElementById('healthBars').style.display = 'none';
+    
+    running = false;
+    playerPos = 0; playerSpeed = 0; lastK = 'R'; jumpY = 0;
+    
+    const diff = DIFFS.find(d => d.id === curDiff);
+    const baseSpeed = SPEEDS[curGame]?.[curDist] || SPEEDS[curGame]?.[100] || 8;
+    
+    // Create CPUs (fewer if online or local multiplayer)
+    cpus = [];
+    const cpuCount = isOnline ? Math.max(0, 4 - onlinePlayers.length) : (isLocal ? Math.max(0, 5 - localPlayers.length) : 5);
+    const cpuNames = ['BOLT', 'PHELPS', 'LEWIS', 'FRASER', 'FELIX'];
+    const cpuColors = ['#e74c3c', '#9b59b6', '#1abc9c', '#e67e22', '#27ae60'];
+    const cpuSkins = ['#FFDFC4', '#D99B6C', '#8B5A2B', '#F0C08A', '#BB7744'];
+    
+    for (let i = 0; i < cpuCount; i++) {
+        const variation = 0.92 + Math.random() * 0.12;
+        cpus.push({ name: cpuNames[i], pos: 0, speed: baseSpeed * diff.mult * variation, color: cpuColors[i], skin: cpuSkins[i], female: i >= 3, finished: false, time: 0, goggles: true, cap: true, isPlayer: false });
+    }
+    
+    // Add local players as runners
+    if (isLocal && localPlayers.length > 1) {
+        localPlayers.slice(1).forEach((p, i) => {
+            cpus.unshift({ name: p.name, pos: 0, speed: 0, color: p.outfit, skin: p.skin, female: p.gender === 'female', finished: false, time: 0, goggles: true, cap: true, isPlayer: true, playerIdx: i + 1 });
+        });
+    }
+    
+    // Add online players
+    if (isOnline) {
+        onlinePlayers.forEach((p, i) => {
+            if (p.id !== peer.id) {
+                cpus.unshift({ name: p.name, pos: 0, speed: 0, color: p.outfit, skin: p.skin, female: false, finished: false, time: 0, goggles: true, cap: true, isPlayer: true, onlineId: p.id });
+            }
+            onlinePositions[p.id] = 0;
+        });
+    }
+    
+    // Hurdles
+    if (curGame === 'hurdles') {
+        hurdleList = [];
+        const hc = Math.floor(curDist / 15);
+        const spacing = curDist / (hc + 1);
+        for (let i = 0; i < hc; i++) hurdleList.push({ x: spacing * (i + 1), cleared: false });
+    }
+    
+    setupControls();
+    show('s6');
+    
+    setTimeout(() => {
+        canvas = document.getElementById('canvas');
+        canvas.width = 550; canvas.height = 260; W = 550; H = 260;
+        ctx = canvas.getContext('2d');
+        drawRaceFrame(0);
+        countdown(() => { startT = Date.now(); running = true; raceLoop(); });
+    }, 100);
+}
+
+function setupControls() {
+    const div = document.getElementById('ctrls');
+    div.innerHTML = '';
+    
+    if (curGame === 'kungfu') {
+        document.getElementById('hInfo').textContent = 'PUNCH, KICK, BLOCK!';
+        addCtrl(div, '👊', 'red', () => doFightMove('punch'));
+        addCtrl(div, '🦶', 'blue', () => doFightMove('kick'));
+        addCtrl(div, '🛡', 'green', () => doFightMove('block'));
+        addCtrl(div, '⚡', 'gold', () => doFightMove('special'));
+    } else {
+        document.getElementById('hInfo').textContent = curGame === 'hurdles' ? 'TAP ◀ ▶ TO RUN, ⬆ TO JUMP!' : 'TAP ◀ ▶ ALTERNATELY!';
+        addCtrl(div, '◀', 'blue', () => doTap('L'));
+        addCtrl(div, '▶', 'green', () => doTap('R'));
+        if (curGame === 'hurdles') addCtrl(div, '⬆', '', doJump);
+    }
+}
+
+function addCtrl(p, t, c, fn) {
+    const b = document.createElement('button');
+    b.className = 'ctrl' + (c ? ' ' + c : '');
+    b.textContent = t;
+    tap(b, fn);
+    p.appendChild(b);
+}
+
+function doTap(side) {
+    if (!running) return;
+    playerSpeed += side !== lastK ? 1.1 : 0.45;
+    lastK = side;
+}
+
+function doJump() { if (running && jumpY === 0) jumpY = 1; }
+
+function countdown(cb) {
+    const ov = document.getElementById('cdBox'), num = document.getElementById('cdNum'), txt = document.getElementById('cdTxt');
+    ov.classList.add('on');
+    let c = 3; num.textContent = c; txt.textContent = 'GET READY!';
+    const rd = setInterval(() => { if (curGame === 'kungfu') drawFightFrame(0); else drawRaceFrame(0); }, 50);
+    const iv = setInterval(() => {
+        c--;
+        if (c > 0) { num.textContent = c; txt.textContent = c === 1 ? 'SET...' : 'GET READY!'; }
+        else if (c === 0) { num.textContent = 'GO!'; txt.textContent = ''; }
+        else { clearInterval(iv); clearInterval(rd); ov.classList.remove('on'); cb(); }
+    }, 800);
+}
+
+// ==================== RACE LOOP ====================
+function raceLoop() {
+    if (!running) return;
+    const t = (Date.now() - startT) / 1000;
+    
+    document.getElementById('hTime').textContent = formatTime(t);
+    document.getElementById('hDist').textContent = playerPos.toFixed(1) + '/' + curDist + 'm';
+    
+    const speedFactor = curGame === 'swim' ? 0.07 : 0.13;
+    playerPos += playerSpeed * speedFactor;
+    playerSpeed *= 0.91;
+    
+    // Jump
+    if (jumpY > 0) { jumpY += 0.9; if (jumpY > 15) jumpY = -15; }
+    else if (jumpY < 0) { jumpY += 0.9; if (jumpY > 0) jumpY = 0; }
+    
+    // Hurdles
+    if (curGame === 'hurdles') {
+        const jOff = jumpY > 0 ? -jumpY * 3 : jumpY * 3;
+        hurdleList.forEach(h => {
+            if (!h.cleared && Math.abs(playerPos - h.x) < 2.5) {
+                if (jOff > -25) playerSpeed *= 0.15;
+                h.cleared = true;
+            }
+        });
+    }
+    
+    // Update CPUs
+    cpus.forEach(cpu => {
+        if (cpu.isPlayer) {
+            // Local or online player
+            if (cpu.onlineId && onlinePositions[cpu.onlineId] !== undefined) {
+                cpu.pos = onlinePositions[cpu.onlineId];
+            }
+        } else if (!cpu.finished) {
+            cpu.pos += cpu.speed * (0.092 + Math.random() * 0.016);
+            if (cpu.pos >= curDist) { cpu.finished = true; cpu.time = t; }
+        }
+    });
+    
+    // Broadcast position online
+    if (isOnline) broadcastPos(playerPos);
+    
+    updateLivePos(t);
+    drawRaceFrame(t);
+    
+    if (playerPos >= curDist) { endRace(t); return; }
+    anim = requestAnimationFrame(raceLoop);
+}
+
+function updateLivePos(t) {
+    const all = [{ name: 'YOU', pos: playerPos, you: true }, ...cpus.map(c => ({ name: c.name, pos: c.pos, you: false, isPlayer: c.isPlayer }))].sort((a, b) => b.pos - a.pos);
+    document.getElementById('livePos').innerHTML = all.slice(0, 5).map((r, i) => `<div class="${r.you ? 'you' : ''}">${i + 1}. ${r.name} ${r.pos.toFixed(1)}m</div>`).join('');
+}
+
+function formatTime(s) {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60), ms = Math.floor((s % 1) * 100);
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+}
+
+// ==================== DRAWING ====================
+function drawRaceFrame(t) {
+    ctx.fillStyle = '#0a0a15';
+    ctx.fillRect(0, 0, W, H);
+    if (curGame === 'swim') drawSwimScene(t);
+    else drawTrackScene(t);
+}
+
+function drawTrackScene(t) {
+    const tY = H * 0.3, lH = 34, lanes = 6;
+    
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, tY);
+    sky.addColorStop(0, '#1a3a5c');
+    sky.addColorStop(1, '#2d6a9f');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, tY);
+    
+    // Sun
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath(); ctx.arc(W - 45, 30, 22, 0, Math.PI * 2); ctx.fill();
+    
+    // Stadium
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(0, tY - 40, W, 40);
+    
+    // Audience
+    const cols = ['#e74c3c', '#f39c12', '#3498db', '#9b59b6', '#2ecc71'];
+    for (let r = 0; r < 3; r++) for (let i = 0; i < W / 8; i++) {
+        const b = Math.sin(t * 5 + i * 0.4 + r) * 2;
+        ctx.fillStyle = cols[(i + r) % 5];
+        ctx.beginPath(); ctx.arc(i * 8 + 4, tY - 30 + r * 12 + b, 3.5, 0, Math.PI * 2); ctx.fill();
+    }
+    
+    // Track
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(0, tY, W, lH * lanes);
+    
+    // Lanes
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= lanes; i++) { ctx.beginPath(); ctx.moveTo(0, tY + i * lH); ctx.lineTo(W, tY + i * lH); ctx.stroke(); }
+    
+    const visDist = 45, camOff = Math.max(0, playerPos - 12);
+    
+    // Markers
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 8px monospace';
+    const step = curDist > 200 ? 50 : 10;
+    for (let m = 0; m <= curDist; m += step) {
+        const sx = ((m - camOff) / visDist) * W;
+        if (sx >= 0 && sx <= W) {
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.fillRect(sx, tY, 2, lH * lanes);
+            ctx.fillStyle = 'white';
+            ctx.fillText(m + 'm', sx + 3, tY + 10);
+        }
+    }
+    
+    // Finish
+    const fsx = ((curDist - camOff) / visDist) * W;
+    if (fsx >= 0 && fsx <= W) {
+        for (let r = 0; r < lanes; r++) for (let c = 0; c < 3; c++) {
+            ctx.fillStyle = (r + c) % 2 ? 'black' : 'white';
+            ctx.fillRect(fsx + c * 7, tY + r * lH, 7, lH);
+        }
+    }
+    
+    // Hurdles
+    if (curGame === 'hurdles') hurdleList.forEach(h => {
+        const hx = ((h.x - camOff) / visDist) * W;
+        if (hx >= -20 && hx <= W + 20) {
+            ctx.fillStyle = h.cleared ? '#27ae60' : '#f39c12';
+            ctx.fillRect(hx - 2, tY + lH - 26, 4, 26);
+            ctx.fillRect(hx + 20, tY + lH - 26, 4, 26);
+            ctx.fillStyle = h.cleared ? '#2ecc71' : '#e74c3c';
+            ctx.fillRect(hx - 4, tY + lH - 30, 30, 5);
+        }
+    });
+    
+    // CPUs
+    cpus.forEach((cpu, i) => {
+        const cx = ((cpu.pos - camOff) / visDist) * W;
+        if (cx >= -30 && cx <= W + 30) {
+            const ly = tY + (i + 1) * lH + lH / 2;
+            drawRunner(ctx, cx, ly, cpu.skin, cpu.color, cpu.female, 1.2, t);
+            if (cpu.isPlayer) {
+                ctx.fillStyle = '#f1c40f';
+                ctx.font = 'bold 7px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(cpu.name, cx, ly - 38);
+                ctx.textAlign = 'left';
+            }
+        }
+    });
+    
+    // Player
+    const px = ((playerPos - camOff) / visDist) * W;
+    const jOff = jumpY > 0 ? -jumpY * 3 : jumpY * 3;
+    const pY = tY + lH / 2 + jOff;
+    drawRunner(ctx, px, pY, player.skin, player.outfit, player.gender === 'female', 1.2, t);
+    
+    // Indicator
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath(); ctx.moveTo(px, pY - 38); ctx.lineTo(px - 5, pY - 46); ctx.lineTo(px + 5, pY - 46); ctx.fill();
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('YOU', px, pY - 50);
+    ctx.textAlign = 'left';
+}
+
+function drawSwimScene(t) {
+    const lH = H / 6;
+    
+    // Water
+    const water = ctx.createLinearGradient(0, 0, 0, H);
+    water.addColorStop(0, '#1a5276');
+    water.addColorStop(0.5, '#2e86c1');
+    water.addColorStop(1, '#1a5276');
+    ctx.fillStyle = water;
+    ctx.fillRect(0, 0, W, H);
+    
+    // Ripples
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 10; i++) {
+        const y = (t * 18 + i * 28) % H;
+        ctx.beginPath(); ctx.moveTo(0, y);
+        for (let x = 0; x < W; x += 15) ctx.lineTo(x + 7, y + Math.sin(x * 0.04 + t * 4) * 4);
+        ctx.stroke();
+    }
+    
+    // Lanes
+    for (let i = 0; i <= 6; i++) {
+        const cols = ['#e74c3c', '#f1c40f', '#fff'];
+        for (let j = 0; j < W; j += 11) {
+            ctx.fillStyle = cols[Math.floor(j / 11) % 3];
+            ctx.beginPath(); ctx.arc(j + 5, i * lH, 3, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    
+    // Walls
+    ctx.fillStyle = '#5d6d7e';
+    ctx.fillRect(0, 0, 20, H);
+    ctx.fillRect(W - 20, 0, 20, H);
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillRect(0, 0, 5, H);
+    ctx.fillRect(W - 5, 0, 5, H);
+    
+    const visDist = 35, camOff = Math.max(0, playerPos - 8);
+    
+    // Markers
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 2;
+    const step = curDist > 200 ? 50 : 25;
+    for (let m = 0; m <= curDist; m += step) {
+        const sx = 20 + ((m - camOff) / visDist) * (W - 40);
+        if (sx >= 20 && sx <= W - 20) {
+            ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '8px monospace';
+            ctx.fillText(m + 'm', sx + 3, 15);
+        }
+    }
+    
+    // CPUs
+    cpus.forEach((cpu, i) => {
+        const cx = 20 + ((cpu.pos - camOff) / visDist) * (W - 40);
+        if (cx >= 0 && cx <= W) {
+            const ly = (i + 1) * lH + lH / 2;
+            drawSwimmer(ctx, cx, ly, cpu.skin, cpu.color, cpu.goggles, cpu.cap, curSwimStyle, t, 0.9);
+            if (cpu.isPlayer) {
+                ctx.fillStyle = '#f1c40f';
+                ctx.font = 'bold 7px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(cpu.name, cx, ly - 18);
+                ctx.textAlign = 'left';
+            }
+        }
+    });
+    
+    // Player
+    const px = 20 + ((playerPos - camOff) / visDist) * (W - 40);
+    drawSwimmer(ctx, px, lH / 2, player.skin, player.outfit, player.goggles, player.cap, curSwimStyle, t, 0.9);
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('▼ YOU', px, lH / 2 - 18);
+    ctx.textAlign = 'left';
+}
+
+function drawRunner(ctx, x, y, skin, outfit, fem, s, t) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.ellipse(0, 10 * s, 8 * s, 3 * s, 0, 0, Math.PI * 2); ctx.fill();
+    
+    const leg = Math.sin(t * 18) * 10;
+    const arm = Math.sin(t * 18 + Math.PI) * 8;
+    
+    // Legs
+    ctx.fillStyle = skin;
+    ctx.save(); ctx.translate(-2 * s, 0); ctx.rotate((-15 - leg) * Math.PI / 180);
+    ctx.fillRect(-2.5 * s, 0, 5 * s, 14 * s);
+    ctx.fillStyle = '#2c3e50'; ctx.fillRect(-3 * s, 11 * s, 6 * s, 4 * s);
+    ctx.restore();
+    
+    ctx.fillStyle = skin;
+    ctx.save(); ctx.translate(2 * s, 0); ctx.rotate((15 + leg) * Math.PI / 180);
+    ctx.fillRect(-2.5 * s, 0, 5 * s, 14 * s);
+    ctx.fillStyle = '#2c3e50'; ctx.fillRect(-3 * s, 11 * s, 6 * s, 4 * s);
+    ctx.restore();
+    
+    // Shorts & body
+    ctx.fillStyle = outfit;
+    ctx.fillRect(-6 * s, -3 * s, 12 * s, 8 * s);
+    ctx.fillRect(-7 * s, -20 * s, 14 * s, 18 * s);
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillRect(-1 * s, -18 * s, 2 * s, 13 * s);
+    
+    // Arms
+    ctx.fillStyle = skin;
+    ctx.save(); ctx.translate(-7 * s, -16 * s); ctx.rotate((18 - arm) * Math.PI / 180);
+    ctx.fillRect(-2 * s, 0, 4 * s, 10 * s); ctx.restore();
+    ctx.save(); ctx.translate(7 * s, -16 * s); ctx.rotate((-18 + arm) * Math.PI / 180);
+    ctx.fillRect(-2 * s, 0, 4 * s, 10 * s); ctx.restore();
+    
+    // Head
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.arc(0, -26 * s, 7 * s, 0, Math.PI * 2); ctx.fill();
+    
+    // Hair
+    ctx.fillStyle = fem ? '#5D4037' : '#2c3e50';
+    if (fem) {
+        ctx.beginPath(); ctx.arc(0, -28 * s, 7 * s, Math.PI, 0); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(5 * s, -25 * s, 2.5 * s, 6 * s, 0.3, 0, Math.PI * 2); ctx.fill();
+    } else {
+        ctx.beginPath(); ctx.arc(0, -30 * s, 6 * s, Math.PI * 0.75, Math.PI * 0.25); ctx.fill();
+    }
+    
+    // Eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-3 * s, -27 * s, 1.5 * s, 2 * s);
+    ctx.fillRect(1.5 * s, -27 * s, 1.5 * s, 2 * s);
+    
+    ctx.restore();
+}
+
+function drawSwimmer(ctx, x, y, skin, outfit, goggles, cap, style, t, s) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    const wave = Math.sin(t * 10) * 2;
+    ctx.rotate(wave * 0.015);
+    
+    // Different stroke animations
+    let armL = 0, armR = 0, legKick = Math.sin(t * 16) * 12;
+    
+    if (style === 'freestyle') {
+        const stroke = (t * 3) % 1;
+        armL = stroke < 0.5 ? stroke * 2 * Math.PI : 0.3;
+        armR = stroke >= 0.5 ? (stroke - 0.5) * 2 * Math.PI : 0.3;
+    } else if (style === 'backstroke') {
+        const stroke = (t * 2.5) % 1;
+        armL = stroke < 0.5 ? -stroke * 2 * Math.PI : -0.3;
+        armR = stroke >= 0.5 ? -(stroke - 0.5) * 2 * Math.PI : -0.3;
+    } else if (style === 'butterfly') {
+        const stroke = (t * 2) % 1;
+        armL = armR = Math.sin(stroke * Math.PI * 2) * Math.PI * 0.6;
+        legKick = Math.sin(t * 12) * 20;
+    } else if (style === 'breaststroke') {
+        const stroke = (t * 1.8) % 1;
+        const pull = stroke < 0.4 ? stroke / 0.4 : stroke < 0.7 ? 1 : 1 - (stroke - 0.7) / 0.3;
+        armL = -pull * 0.8;
+        armR = pull * 0.8;
+        legKick = stroke < 0.5 ? 0 : Math.sin((stroke - 0.5) * 4 * Math.PI) * 25;
+    }
+    
+    // Body
+    ctx.fillStyle = outfit;
+    ctx.beginPath(); ctx.ellipse(0, 0, 20 * s, 7 * s, 0, 0, Math.PI * 2); ctx.fill();
+    
+    // Legs
+    ctx.fillStyle = skin;
+    ctx.save(); ctx.translate(-18 * s, 2 * s); ctx.rotate(legKick * Math.PI / 180);
+    ctx.fillRect(-10 * s, -2 * s, 12 * s, 4 * s); ctx.restore();
+    ctx.save(); ctx.translate(-18 * s, -2 * s); ctx.rotate(-legKick * Math.PI / 180);
+    ctx.fillRect(-10 * s, -2 * s, 12 * s, 4 * s); ctx.restore();
+    
+    // Arms
+    ctx.fillStyle = skin;
+    ctx.save(); ctx.translate(6 * s, -4 * s); ctx.rotate(-armL);
+    ctx.fillRect(0, -2 * s, 14 * s, 4 * s);
+    ctx.beginPath(); ctx.ellipse(15 * s, 0, 3 * s, 3.5 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.save(); ctx.translate(6 * s, 4 * s); ctx.rotate(armR);
+    ctx.fillRect(0, -2 * s, 14 * s, 4 * s);
+    ctx.beginPath(); ctx.ellipse(15 * s, 0, 3 * s, 3.5 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    
+    // Head
+    ctx.fillStyle = skin;
+    const headY = style === 'backstroke' ? 5 * s : -2 * s;
+    ctx.beginPath(); ctx.arc(22 * s, headY, 7 * s, 0, Math.PI * 2); ctx.fill();
+    
+    // Cap
+    if (cap) {
+        ctx.fillStyle = outfit;
+        ctx.beginPath(); ctx.arc(22 * s, headY - 2 * s, 7 * s, Math.PI, 0); ctx.fill();
+    }
+    
+    // Goggles
+    if (goggles) {
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(16 * s, headY - 2 * s, 12 * s, 4 * s);
+        ctx.fillStyle = '#5dade2';
+        ctx.beginPath(); ctx.ellipse(19 * s, headY, 2.5 * s, 2 * s, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(25 * s, headY, 2.5 * s, 2 * s, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    
+    // Splash
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.arc(-24 * s - i * 5 * s + Math.sin(t * 10 + i) * 2 * s, Math.sin(t * 12 + i * 1.5) * 5 * s, (2 + Math.random()) * s, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    ctx.restore();
+}
+
+// ==================== KUNG FU ====================
+function startKungFu() {
+    document.getElementById('hEvent').textContent = '🥋 KUNG FU FIGHT';
+    document.getElementById('hDist').textContent = '';
+    document.getElementById('healthBars').style.display = 'block';
+    document.getElementById('healthBars').innerHTML = `
+        <div style="display:flex;gap:10px;align-items:center;font-size:0.35rem;">
+            <span style="color:#3498db;">YOU</span>
+            <div class="health-bar" style="flex:1;"><div class="health-fill" id="playerHealthFill" style="width:100%;"></div></div>
+            <span id="playerHealthNum">100</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:0.35rem;margin-top:5px;">
+            <span style="color:#e74c3c;">CPU</span>
+            <div class="health-bar" style="flex:1;"><div class="health-fill" id="enemyHealthFill" style="width:100%;background:linear-gradient(90deg,#2ecc71,#f1c40f,#e74c3c);"></div></div>
+            <span id="enemyHealthNum">100</span>
+        </div>
+    `;
+    
+    running = false;
+    playerHealth = 100; enemyHealth = 100;
+    playerCombo = 0; lastMove = ''; comboTimer = 0;
+    enemyState = 'idle'; enemyTimer = 0;
+    fightTime = 60;
+    
+    setupControls();
+    show('s6');
+    
+    setTimeout(() => {
+        canvas = document.getElementById('canvas');
+        canvas.width = 550; canvas.height = 260; W = 550; H = 260;
+        ctx = canvas.getContext('2d');
+        drawFightFrame(0);
+        countdown(() => { startT = Date.now(); running = true; fightLoop(); });
+    }, 100);
+}
+
+let playerState = 'idle', playerAnim = 0;
+
+function doFightMove(move) {
+    if (!running || playerState !== 'idle') return;
+    
+    playerState = move;
+    playerAnim = 0;
+    
+    // Combo system
+    if (comboTimer > 0 && lastMove !== move) {
+        playerCombo++;
+        if (playerCombo >= 3) {
+            showCombo('COMBO x' + playerCombo + '!');
+        }
+    } else {
+        playerCombo = 1;
+    }
+    lastMove = move;
+    comboTimer = 30;
+    
+    // Calculate damage
+    let damage = 0;
+    const diff = DIFFS.find(d => d.id === curDiff);
+    
+    if (move === 'punch') damage = 8 + Math.random() * 5;
+    else if (move === 'kick') damage = 12 + Math.random() * 8;
+    else if (move === 'special') damage = 20 + Math.random() * 10;
+    else if (move === 'block') damage = 0;
+    
+    damage *= (1 + playerCombo * 0.1);
+    
+    // Check if enemy is blocking
+    if (enemyState === 'block' && move !== 'special') {
+        damage *= 0.2;
+    }
+    
+    if (damage > 0) {
+        enemyHealth = Math.max(0, enemyHealth - damage);
+        updateHealthBars();
+    }
+    
+    setTimeout(() => { playerState = 'idle'; }, 300);
+}
+
+function showCombo(text) {
+    const el = document.getElementById('combo');
+    el.textContent = text;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 500);
+}
+
+function fightLoop() {
+    if (!running) return;
+    
+    const t = (Date.now() - startT) / 1000;
+    const remaining = Math.max(0, fightTime - t);
+    document.getElementById('hTime').textContent = formatTime(remaining);
+    
+    // Combo timer
+    if (comboTimer > 0) comboTimer--;
+    
+    // Enemy AI
+    enemyTimer--;
+    if (enemyTimer <= 0 && enemyState === 'idle') {
+        const diff = DIFFS.find(d => d.id === curDiff);
+        const actions = ['punch', 'kick', 'block', 'idle'];
+        const weights = diff.id === 'easy' ? [0.2, 0.1, 0.2, 0.5] : diff.id === 'hard' ? [0.35, 0.25, 0.25, 0.15] : [0.25, 0.2, 0.2, 0.35];
+        
+        let r = Math.random(), sum = 0;
+        for (let i = 0; i < actions.length; i++) {
+            sum += weights[i];
+            if (r < sum) {
+                enemyState = actions[i];
+                break;
+            }
+        }
+        
+        if (enemyState !== 'idle' && enemyState !== 'block') {
+            // Enemy attacks
+            let damage = enemyState === 'punch' ? 6 : 10;
+            damage *= diff.mult;
+            
+            if (playerState === 'block') damage *= 0.2;
+            
+            playerHealth = Math.max(0, playerHealth - damage);
+            updateHealthBars();
+        }
+        
+        enemyTimer = 30 + Math.random() * 30;
+        setTimeout(() => { enemyState = 'idle'; }, 300);
+    }
+    
+    drawFightFrame(t);
+    
+    // Check win/lose
+    if (playerHealth <= 0 || enemyHealth <= 0 || remaining <= 0) {
+        endFight();
+        return;
+    }
+    
+    anim = requestAnimationFrame(fightLoop);
+}
+
+function updateHealthBars() {
+    document.getElementById('playerHealthFill').style.width = playerHealth + '%';
+    document.getElementById('playerHealthNum').textContent = Math.round(playerHealth);
+    document.getElementById('enemyHealthFill').style.width = enemyHealth + '%';
+    document.getElementById('enemyHealthNum').textContent = Math.round(enemyHealth);
+}
+
+function drawFightFrame(t) {
+    // Background - dojo
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#4a3728');
+    grad.addColorStop(1, '#2c1810');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    
+    // Floor
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(0, H * 0.7, W, H * 0.3);
+    
+    // Floor lines
+    ctx.strokeStyle = '#5D3420';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * 60, H * 0.7);
+        ctx.lineTo(i * 60, H);
+        ctx.stroke();
+    }
+    
+    // Wall decorations
+    ctx.fillStyle = '#8B0000';
+    ctx.fillRect(50, 30, 80, 100);
+    ctx.fillRect(W - 130, 30, 80, 100);
+    
+    // Scroll decorations
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '20px monospace';
+    ctx.fillText('武', 75, 90);
+    ctx.fillText('道', W - 105, 90);
+    
+    // Draw fighters
+    drawFighter(ctx, 150, H * 0.65, player.skin, player.outfit, player.gender === 'female', player.headband, playerState, 2);
+    drawFighter(ctx, W - 150, H * 0.65, '#D99B6C', '#e74c3c', false, true, enemyState, 2, true);
+}
+
+function drawFighter(ctx, x, y, skin, outfit, fem, headband, state, s, flip) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (flip) ctx.scale(-1, 1);
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.ellipse(0, 15 * s, 12 * s, 4 * s, 0, 0, Math.PI * 2); ctx.fill();
+    
+    let armAngle = 0, legAngle = 0, bodyLean = 0;
+    
+    if (state === 'punch') {
+        armAngle = -90;
+        bodyLean = 10;
+    } else if (state === 'kick') {
+        legAngle = 70;
+        bodyLean = -5;
+    } else if (state === 'block') {
+        armAngle = -45;
+    } else if (state === 'special') {
+        armAngle = -120;
+        bodyLean = 15;
+    }
+    
+    ctx.rotate(bodyLean * Math.PI / 180);
+    
+    // Legs
+    ctx.fillStyle = outfit;
+    ctx.save(); ctx.translate(-3 * s, 0);
+    ctx.fillRect(-3 * s, 0, 6 * s, 18 * s);
+    ctx.restore();
+    
+    ctx.save(); ctx.translate(3 * s, 0);
+    ctx.rotate(legAngle * Math.PI / 180);
+    ctx.fillRect(-3 * s, 0, 6 * s, 18 * s);
+    ctx.fillStyle = skin;
+    ctx.fillRect(-2 * s, 15 * s, 4 * s, 4 * s);
+    ctx.restore();
+    
+    // Body (gi)
+    ctx.fillStyle = outfit;
+    ctx.fillRect(-10 * s, -25 * s, 20 * s, 28 * s);
+    
+    // Belt
+    ctx.fillStyle = curDiff === 'hard' ? '#000' : curDiff === 'medium' ? '#8B4513' : '#fff';
+    ctx.fillRect(-10 * s, -5 * s, 20 * s, 4 * s);
+    
+    // Gi opening
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.moveTo(0, -25 * s);
+    ctx.lineTo(-5 * s, -10 * s);
+    ctx.lineTo(5 * s, -10 * s);
+    ctx.fill();
+    
+    // Arms
+    ctx.fillStyle = skin;
+    ctx.save(); ctx.translate(-10 * s, -20 * s);
+    ctx.rotate((armAngle - 20) * Math.PI / 180);
+    ctx.fillRect(0, -2 * s, 12 * s, 4 * s);
+    // Fist
+    ctx.fillRect(10 * s, -3 * s, 5 * s, 6 * s);
+    ctx.restore();
+    
+    ctx.save(); ctx.translate(10 * s, -20 * s);
+    ctx.rotate((-armAngle / 2 + 20) * Math.PI / 180);
+    ctx.fillRect(-12 * s, -2 * s, 12 * s, 4 * s);
+    ctx.restore();
+    
+    // Head
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.arc(0, -32 * s, 9 * s, 0, Math.PI * 2); ctx.fill();
+    
+    // Hair
+    ctx.fillStyle = fem ? '#5D4037' : '#1a1a1a';
+    if (fem) {
+        ctx.beginPath(); ctx.arc(0, -35 * s, 9 * s, Math.PI, 0); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(7 * s, -32 * s, 3 * s, 8 * s, 0.3, 0, Math.PI * 2); ctx.fill();
+    } else {
+        ctx.beginPath(); ctx.arc(0, -37 * s, 8 * s, Math.PI * 0.7, Math.PI * 0.3); ctx.fill();
+    }
+    
+    // Headband
+    if (headband) {
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(-10 * s, -38 * s, 20 * s, 4 * s);
+        // Tails
+        ctx.fillRect(8 * s, -38 * s, 8 * s, 3 * s);
+        ctx.fillRect(10 * s, -36 * s, 6 * s, 3 * s);
+    }
+    
+    // Eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-4 * s, -34 * s, 2 * s, 3 * s);
+    ctx.fillRect(2 * s, -34 * s, 2 * s, 3 * s);
+    
+    // Determined expression
+    if (state !== 'idle') {
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-5 * s, -36 * s);
+        ctx.lineTo(-2 * s, -35 * s);
+        ctx.moveTo(5 * s, -36 * s);
+        ctx.lineTo(2 * s, -35 * s);
+        ctx.stroke();
+    }
+    
+    ctx.restore();
+}
+
+function endFight() {
+    running = false;
+    cancelAnimationFrame(anim);
+    
+    const won = enemyHealth <= 0 || (playerHealth > enemyHealth);
+    const score = won ? Math.round(100 - enemyHealth + playerHealth) : Math.round(playerHealth);
+    
+    saveScore('kungfu', 0, player.name, score);
+    
+    if (isTourn) {
+        tScores[tIdx] = score;
+        tIdx++;
+        updateTournamentUI();
+    }
+    
+    document.getElementById('rIcon').textContent = won ? '🥋' : '😵';
+    document.getElementById('rTtl').textContent = won ? 'VICTORY!' : 'DEFEATED';
+    document.getElementById('rScore').textContent = score + ' PTS';
+    document.getElementById('rRanks').innerHTML = `
+        <div class="rank you"><span>YOUR HEALTH</span><span>${Math.round(playerHealth)}%</span></div>
+        <div class="rank"><span>ENEMY HEALTH</span><span>${Math.round(enemyHealth)}%</span></div>
+    `;
+    
+    show('s7');
+}
+
+// ==================== END RACE ====================
+function endRace(time) {
+    running = false;
+    cancelAnimationFrame(anim);
+    
+    const all = [{ name: 'YOU', time, you: true }, ...cpus.map(c => ({ name: c.name, time: c.finished ? c.time : time + 10, you: false, isPlayer: c.isPlayer }))].sort((a, b) => a.time - b.time);
+    const rank = all.findIndex(r => r.you) + 1;
+    
+    saveScore(curGame, curDist, player.name, time);
+    
+    if (isTourn) {
+        tScores[tIdx] = time;
+        tIdx++;
+        updateTournamentUI();
+    }
+    
+    document.getElementById('rIcon').textContent = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏁';
+    document.getElementById('rTtl').textContent = rank === 1 ? 'GOLD!' : rank <= 3 ? 'PODIUM!' : 'FINISHED';
+    document.getElementById('rScore').textContent = time.toFixed(2) + 's';
+    document.getElementById('rRanks').innerHTML = all.map((r, i) => `<div class="rank ${i === 0 ? 'gold' : ''} ${r.you ? 'you' : ''}"><span>${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'} ${r.name} ${r.isPlayer ? '👤' : ''}</span><span>${r.time.toFixed(2)}s</span></div>`).join('');
+    
+    show('s7');
+}
+
+function retry() {
+    if (isTourn && tIdx > 0) {
+        tIdx--;
+        const ev = TOURNAMENT[tIdx];
+        curGame = ev.game;
+        curDist = ev.dist || 100;
+    }
+    startGame();
+}
+
+// ==================== LEADERBOARD ====================
+function showLeaderboard(game, dist) {
+    document.getElementById('lbGame').innerHTML = Object.entries(GAMES).map(([k, v]) => `<div class="opt ${k === game ? 'sel' : ''}" data-game="${k}">${v.icon}</div>`).join('');
+    document.querySelectorAll('#lbGame .opt').forEach(el => { tap(el, () => showLeaderboard(el.dataset.game, dist)); });
+    
+    if (game !== 'kungfu') {
+        document.getElementById('lbDist').style.display = 'flex';
+        document.getElementById('lbDist').innerHTML = DISTS.map(d => `<div class="opt ${d.m === dist ? 'sel' : ''}" data-dist="${d.m}">${d.name}</div>`).join('');
+        document.querySelectorAll('#lbDist .opt').forEach(el => { tap(el, () => showLeaderboard(game, parseInt(el.dataset.dist))); });
+    } else {
+        document.getElementById('lbDist').style.display = 'none';
+        dist = 0;
+    }
+    
+    const scores = load(`sc_${game}_${dist}`) || [];
+    document.getElementById('lbList').innerHTML = scores.length === 0
+        ? '<div style="text-align:center;padding:20px;color:#555;"><div style="font-size:1.5rem;">📭</div><div style="font-size:0.35rem;margin-top:8px;">NO RECORDS</div></div>'
+        : scores.slice(0, 15).map((s, i) => `<div class="rank ${i === 0 ? 'gold' : ''} ${s.n === player.name ? 'you' : ''}"><span>${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'}</span><span style="flex:1;margin-left:8px;">${s.n}</span><span style="color:#f1c40f;">${game === 'kungfu' ? s.t + 'pts' : s.t.toFixed(2) + 's'}</span></div>`).join('');
+}
+</script>
+</body>
+</html>
